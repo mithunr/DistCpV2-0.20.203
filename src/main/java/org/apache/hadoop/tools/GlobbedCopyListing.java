@@ -94,6 +94,7 @@ public class GlobbedCopyListing extends CopyListing {
     optionsGlobbed.setSyncFolder(options.shouldSyncFolder());
     optionsGlobbed.setOverwrite(options.shouldOverwrite());
     optionsGlobbed.setDeleteMissing(options.shouldDeleteMissing());
+    optionsGlobbed.setPreserveSrcPath(options.shouldPreserveSrcPath());
 
     simpleListing.buildListing(pathToListingFile, optionsGlobbed);
   }

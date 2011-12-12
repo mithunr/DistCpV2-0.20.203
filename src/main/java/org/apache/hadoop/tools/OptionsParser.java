@@ -114,6 +114,10 @@ public class OptionsParser {
       option.setIgnoreFailures(true);
     }
 
+    if (command.hasOption(DistCpOptionSwitch.PRESERVE_SRC_PATH.getSwitch())) {
+      option.setPreserveSrcPath(true);
+    }
+
     if (command.hasOption(DistCpOptionSwitch.ATOMIC_COMMIT.getSwitch())) {
       option.setAtomicCommit(true);
     }

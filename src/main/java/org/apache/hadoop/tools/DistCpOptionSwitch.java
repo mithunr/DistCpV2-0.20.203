@@ -35,6 +35,12 @@ public enum DistCpOptionSwitch {
       new Option("i", false, "Ignore failures during copy")),
 
   /**
+   * Preserve source path
+   */
+  PRESERVE_SRC_PATH(DistCpConstants.CONF_LABEL_PRESERVE_SRC_PATH,
+     new Option("preserveSrcPath", false, "Preserve source path")),
+
+  /**
    * Preserves status of file/path in the target.
    * Default behavior with -p, is to preserve replication,
    * block size, user, group and permission on the target file

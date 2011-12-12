@@ -69,6 +69,7 @@ public class FileBasedCopyListing extends CopyListing {
     newOption.setSyncFolder(options.shouldSyncFolder());
     newOption.setOverwrite(options.shouldOverwrite());
     newOption.setDeleteMissing(options.shouldDeleteMissing());
+    newOption.setPreserveSrcPath(options.shouldPreserveSrcPath());
     
     globbedListing.buildListing(pathToListFile, newOption);
   }

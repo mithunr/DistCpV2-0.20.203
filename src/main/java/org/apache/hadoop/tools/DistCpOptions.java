@@ -38,6 +38,7 @@ public class DistCpOptions {
   private boolean syncFolder = false;
   private boolean deleteMissing = false;
   private boolean ignoreFailures = false;
+  private boolean preserveSrcPath = false;
   private boolean overwrite = false;
   private boolean skipCRC = false;
   private boolean blocking = true;
@@ -155,6 +156,24 @@ public class DistCpOptions {
   public void setDeleteMissing(boolean deleteMissing) {
     validate(DistCpOptionSwitch.DELETE_MISSING, deleteMissing);
     this.deleteMissing = deleteMissing;
+  }
+
+  /**
+   * Should preserve src path
+   *
+   * @return true if path has to be preserved. false otherwise
+   */
+  public boolean shouldPreserveSrcPath() {
+    return preserveSrcPath;
+  }
+
+  /**
+   * Set if preserve src path
+   *
+   * @param preserveSrcPath - boolean switch
+   */
+  public void setPreserveSrcPath(boolean preserveSrcPath) {
+    this.preserveSrcPath = preserveSrcPath;
   }
 
   /**
@@ -451,6 +470,8 @@ public class DistCpOptions {
         String.valueOf(atomicCommit));
     DistCpOptionSwitch.addToConf(conf, DistCpOptionSwitch.IGNORE_FAILURES,
         String.valueOf(ignoreFailures));
+    DistCpOptionSwitch.addToConf(conf, DistCpOptionSwitch.PRESERVE_SRC_PATH,
+        String.valueOf(preserveSrcPath));
     DistCpOptionSwitch.addToConf(conf, DistCpOptionSwitch.SYNC_FOLDERS,
         String.valueOf(syncFolder));
     DistCpOptionSwitch.addToConf(conf, DistCpOptionSwitch.DELETE_MISSING,
@@ -477,6 +498,7 @@ public class DistCpOptions {
         ", syncFolder=" + syncFolder +
         ", deleteMissing=" + deleteMissing +
         ", ignoreFailures=" + ignoreFailures +
+        ", preserveSrcPath=" + preserveSrcPath +
         ", maxMaps=" + maxMaps +
         ", sslConfigurationFile='" + sslConfigurationFile + '\'' +
         ", copyStrategy='" + copyStrategy + '\'' +
