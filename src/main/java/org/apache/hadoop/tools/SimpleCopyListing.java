@@ -113,6 +113,7 @@ public class SimpleCopyListing extends CopyListing {
         FileStatus[] sourceFiles = sourceFS.listStatus(path);
         if (sourceFiles != null && sourceFiles.length > 0) {
           for (FileStatus sourceStatus: sourceFiles) {
+            if (!shouldCopy(sourceStatus.getPath(), options)) continue;
             if (LOG.isDebugEnabled()) {
               LOG.debug("Recording source-path: " + sourceStatus.getPath() + " for copy.");
             }
@@ -174,6 +175,10 @@ public class SimpleCopyListing extends CopyListing {
   @Override
   protected long getNumberOfPaths() {
     return totalPaths;
+  }
+
+  protected boolean shouldCopy(Path path, DistCpOptions options) {
+    return true;
   }
 
   private Path makeQualified(Path path) throws IOException {

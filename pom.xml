@@ -11,12 +11,12 @@
 
   <properties>
     <tool.version>0.1-SNAPSHOT</tool.version>
-    <hadoop.framework.version>0.20.203.0</hadoop.framework.version>
+    <hadoop.framework.version>0.20.2-cdh3u0</hadoop.framework.version>
     <file.encoding>UTF-8</file.encoding>
     <downloadSources>true</downloadSources>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <system.test.prefix></system.test.prefix>
-    <default.repository>https://repository.apache.org/content/groups/public/</default.repository>
+    <default.repository>https://repository.cloudera.com/content/groups/cloudera-repos</default.repository>
   </properties>
 
   <repositories>

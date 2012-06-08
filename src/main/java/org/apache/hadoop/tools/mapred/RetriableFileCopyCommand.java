@@ -91,7 +91,9 @@ public class RetriableFileCopyCommand extends RetriableCommand {
                                      context, fileAttributes);
 
       compareFileLengths(sourceFileStatus, tmpTargetPath, configuration, bytesRead);
-      compareCheckSums(sourceFS, sourceFileStatus.getPath(), targetFS, tmpTargetPath);
+      if (bytesRead > 0) {
+        compareCheckSums(sourceFS, sourceFileStatus.getPath(), targetFS, tmpTargetPath);
+      }
       promoteTmpToTarget(tmpTargetPath, target, targetFS);
       return bytesRead;
 

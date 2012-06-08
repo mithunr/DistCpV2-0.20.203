@@ -350,21 +350,6 @@ public class DistCp extends Configured implements Tool {
     return metaFolderPath;
   }
 
-  public static int runDistCp(String[] argv, Configuration conf) throws Exception {
-    DistCp distCp = new DistCp();
-    Cleanup CLEANUP = new Cleanup(distCp);
-    Configuration configuration = conf == null ? getDefaultConf() : conf;
-
-    Runtime.getRuntime().addShutdownHook(CLEANUP);
-    int exitCode = ToolRunner.run(configuration, distCp, argv);
-    return exitCode;
-  }
-
-  public static int runDistCp(String[] argv) throws Exception {
-    return runDistCp(argv, null);
-  }
-
-
   /**
    * Main function of the DistCp program. Parses the input arguments (via OptionsParser),
    * and invokes the DistCp::run() method, via the ToolRunner.
@@ -373,7 +358,11 @@ public class DistCp extends Configured implements Tool {
   public static void main(String argv[]) {
     int exitCode = DistCpConstants.UNKNOWN_ERROR;
     try {
-      exitCode = runDistCp(argv);
+      DistCp distCp = new DistCp();
+      Cleanup CLEANUP = new Cleanup(distCp);
+
+      Runtime.getRuntime().addShutdownHook(CLEANUP);
+      exitCode = ToolRunner.run(getDefaultConf(), distCp, argv);
     }
     catch (Exception e) {
       LOG.error("Couldn't complete DistCp operation: ", e);
