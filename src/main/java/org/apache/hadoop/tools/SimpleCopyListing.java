@@ -113,7 +113,6 @@ public class SimpleCopyListing extends CopyListing {
         FileStatus[] sourceFiles = sourceFS.listStatus(path);
         if (sourceFiles != null && sourceFiles.length > 0) {
           for (FileStatus sourceStatus: sourceFiles) {
-            if (!shouldCopy(sourceStatus.getPath(), options)) continue;
             if (LOG.isDebugEnabled()) {
               LOG.debug("Recording source-path: " + sourceStatus.getPath() + " for copy.");
             }
@@ -244,6 +243,7 @@ public class SimpleCopyListing extends CopyListing {
       status = getFileStatus(fileStatus);
     }
 
+    if (!shouldCopy(fileStatus.getPath(), options)) return;
     if (options.shouldPreserveSrcPath()) {
       fileListWriter.append(new Text(fileStatus.getPath().toUri().getPath()), status);
     } else {

@@ -326,7 +326,7 @@ public class DistCp extends Configured implements Tool {
    * @return - Path where the copy listing file has to be saved
    * @throws IOException - Exception if any
    */
-  private Path getFileListingPath() throws IOException {
+  protected Path getFileListingPath() throws IOException {
     String fileListPathStr = metaFolder + "/fileList.seq";
     Path path = new Path(fileListPathStr);
     return new Path(path.toUri().normalize().toString());
