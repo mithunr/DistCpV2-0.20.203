@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.hadoop.tools</groupId>
   <artifactId>hadoop-distcp</artifactId>
-  <version>${version}</version>
+  <version>0.1</version>
   <description>Hadoop Tool - Distributed Copy</description>
   <name>Hadoop Tool - Distributed Copy</name>
   <packaging>jar</packaging>
@@ -15,7 +15,7 @@
     <file.encoding>UTF-8</file.encoding>
     <downloadSources>true</downloadSources>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <system.test.prefix></system.test.prefix>
+    <system.test.prefix />
     <default.repository>https://repository.cloudera.com/content/groups/cloudera-repos</default.repository>
     <local.repo>file:///tmp/repo</local.repo>
   </properties>
