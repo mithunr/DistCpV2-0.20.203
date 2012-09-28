@@ -60,7 +60,10 @@ public class TestUniformSizeInputFormat {
 
   @BeforeClass
   public static void setup() throws Exception {
-    cluster = new MiniDFSCluster(new Configuration(), 1, true, null);
+	Configuration conf= new Configuration();
+	conf.set("dfs.datanode.max.xcievers", "256");
+	LOG.info ("Configuration paramater dfs.datanode.max.xcievers value = "+conf.get("dfs.datanode.max.xcievers"));
+    cluster = new MiniDFSCluster(conf , 1, true, null);
     totalFileSize = 0;
 
     for (int i=0; i<N_FILES; ++i)
