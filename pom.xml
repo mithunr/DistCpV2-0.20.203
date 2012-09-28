@@ -10,7 +10,6 @@
 
 
   <properties>
-    <version>0.1-SNAPSHOT</version>
     <hadoop.framework.version>0.20.2-cdh3u3</hadoop.framework.version>
     <file.encoding>UTF-8</file.encoding>
     <downloadSources>true</downloadSources>
