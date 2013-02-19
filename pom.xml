@@ -31,16 +31,14 @@
   <distributionManagement>
     <snapshotRepository>
       <id>InMobiSnapshotRepository</id>
-      <name>InMobi Internal snapshot Repository</name>
-      <url>http://build.corp.inmobi.com/nexus/content/repositories/snapshots</url>
+      <name>InMobi Repository</name>
+      <url>https://github.com/InMobi/mvn-repo/raw/master/snapshots</url>
     </snapshotRepository>
     <repository>
       <id>InMobiRepository</id>
-      <name>InMobi Internal Repository</name>
-      <url>http://build.corp.inmobi.com/nexus/content/repositories/releases</url>
+      <name>InMobi Repository</name>
+      <url>https://github.com/InMobi/mvn-repo/raw/master/releases</url>
     </repository>
-
-
   </distributionManagement>
   <repositories>
     <repository>
