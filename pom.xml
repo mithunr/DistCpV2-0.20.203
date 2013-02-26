@@ -22,7 +22,7 @@
   <scm>
     <connection>scm:git:https://github.com/InMobi/DistCpV2-0.20.203.git</connection>
     <url>https://github.com/InMobi/DistCpV2-0.20.203</url>
-    <developerConnection>scm:git:https://github.com:InMobi/DistCpV2-0.20.203.git</developerConnection>
+    <developerConnection>scm:git:https://github.com/InMobi/DistCpV2-0.20.203.git</developerConnection>
   </scm>
 
 
