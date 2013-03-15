@@ -18,17 +18,17 @@
 
 package org.apache.hadoop.tools;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IOUtils;
-import org.apache.hadoop.security.Credentials;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IOUtils;
+import org.apache.hadoop.security.Credentials;
 
 /**
  * FileBasedCopyListing implements the CopyListing interface,
@@ -74,7 +74,7 @@ public class FileBasedCopyListing extends CopyListing {
     globbedListing.buildListing(pathToListFile, newOption);
   }
 
-  private List<Path> fetchFileList(Path sourceListing) throws IOException {
+  protected List<Path> fetchFileList(Path sourceListing) throws IOException {
     List<Path> result = new ArrayList<Path>();
     FileSystem fs = sourceListing.getFileSystem(getConf());
     BufferedReader input = null;
