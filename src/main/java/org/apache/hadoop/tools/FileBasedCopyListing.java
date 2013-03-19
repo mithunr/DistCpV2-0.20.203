@@ -70,6 +70,8 @@ public class FileBasedCopyListing extends CopyListing {
     newOption.setOverwrite(options.shouldOverwrite());
     newOption.setDeleteMissing(options.shouldDeleteMissing());
     newOption.setPreserveSrcPath(options.shouldPreserveSrcPath());
+    newOption.setSkipPathValidation(options.isSkipPathValidation());
+    newOption.setUseSimpleFileListing(options.isUseSimpleFileListing());
     
     globbedListing.buildListing(pathToListFile, newOption);
   }

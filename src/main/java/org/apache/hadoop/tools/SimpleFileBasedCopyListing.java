@@ -50,7 +50,8 @@ public class SimpleFileBasedCopyListing extends FileBasedCopyListing{
         newOption.setOverwrite(options.shouldOverwrite());
         newOption.setDeleteMissing(options.shouldDeleteMissing());
         newOption.setPreserveSrcPath(options.shouldPreserveSrcPath());
-        newOption.setSkipPathValidation(true);
+        newOption.setSkipPathValidation(options.isSkipPathValidation());
+        newOption.setUseSimpleFileListing(options.isUseSimpleFileListing());
         simpleListing.doBuildListing(pathToListFile, newOption);
     }
 
