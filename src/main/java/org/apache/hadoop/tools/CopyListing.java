@@ -197,7 +197,7 @@ public abstract class CopyListing extends Configured {
                                              Credentials credentials,
                                              DistCpOptions options) {
         if (options.isUseSimpleFileListing()) {
-            return new ExtermelySimpleFileBasedCopyListing(configuration, credentials);
+            return new SimpleFileBasedCopyListing(configuration, credentials);
         } else if (options.getSourceFileListing() == null) {
             return new GlobbedCopyListing(configuration, credentials);
         } else {

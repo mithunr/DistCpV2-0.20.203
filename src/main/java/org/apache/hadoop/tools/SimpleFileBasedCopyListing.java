@@ -12,9 +12,9 @@ import org.apache.hadoop.security.Credentials;
 /**
  *  This class does not do any check
  **/
-public class ExtermelySimpleFileBasedCopyListing extends FileBasedCopyListing{
+public class SimpleFileBasedCopyListing extends FileBasedCopyListing{
 
-    private static final Log LOG = LogFactory.getLog(ExtermelySimpleFileBasedCopyListing.class);
+    private static final Log LOG = LogFactory.getLog(SimpleFileBasedCopyListing.class);
 
     private final CopyListing simpleListing;
 
@@ -22,7 +22,7 @@ public class ExtermelySimpleFileBasedCopyListing extends FileBasedCopyListing{
     private long totalBytesToCopy = 0;
 
 
-    public ExtermelySimpleFileBasedCopyListing(Configuration configuration, Credentials credentials) {
+    public SimpleFileBasedCopyListing(Configuration configuration, Credentials credentials) {
         super(configuration, credentials);
         simpleListing = new SimpleCopyListing(getConf(), credentials) ;
     }
