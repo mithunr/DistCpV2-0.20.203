@@ -18,14 +18,14 @@
 
 package org.apache.hadoop.tools;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.tools.util.DistCpUtils;
-
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.tools.util.DistCpUtils;
 
 /**
  * The Options class encapsulates all DistCp options.
@@ -42,6 +42,16 @@ public class DistCpOptions {
   private boolean overwrite = false;
   private boolean skipCRC = false;
   private boolean blocking = true;
+  private boolean skipPathValidation = false;
+  private boolean useSimpleFileListing = false;
+
+  public boolean isUseSimpleFileListing() {
+    return useSimpleFileListing;
+  }
+
+  public void setUseSimpleFileListing(boolean useSimpleFileListing) {
+    this.useSimpleFileListing = useSimpleFileListing;
+  }
 
   private int maxMaps = DistCpConstants.DEFAULT_MAPS;
   private int mapBandwidth = DistCpConstants.DEFAULT_BANDWIDTH_MB;
@@ -87,6 +97,15 @@ public class DistCpOptions {
     this.sourcePaths = sourcePaths;
     this.targetPath = targetPath;
   }
+
+  public boolean isSkipPathValidation() {
+    return skipPathValidation;
+  }
+
+  public void setSkipPathValidation(boolean skipPathValidation) {
+    this.skipPathValidation = skipPathValidation;
+  }
+
 
   /**
    * Constructor, to initialize source/target paths.
