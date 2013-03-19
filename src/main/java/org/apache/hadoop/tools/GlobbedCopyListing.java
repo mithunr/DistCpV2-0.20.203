@@ -69,7 +69,7 @@ public class GlobbedCopyListing extends CopyListing {
 
     List<Path> globbedPaths = new ArrayList<Path>();
     if (options.getSourcePaths().isEmpty()) {
-      throw new InvalidInputException("Nothing to process. Source paths::EMPTY");  
+      throw new InvalidInputException("Nothing to process. Source paths::EMPTY");
     }
 
     for (Path p : options.getSourcePaths()) {
@@ -81,7 +81,7 @@ public class GlobbedCopyListing extends CopyListing {
           globbedPaths.add(onePath.getPath());
         }
       } else {
-        throw new InvalidInputException(p + " doesn't exist");        
+        throw new InvalidInputException(p + " doesn't exist");
       }
     }
 
