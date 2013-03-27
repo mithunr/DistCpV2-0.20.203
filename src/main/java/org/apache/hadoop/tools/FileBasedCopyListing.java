@@ -63,9 +63,12 @@ public class FileBasedCopyListing extends CopyListing {
    * @throws IOException
    */
   @Override
-  public void doBuildListing(Path pathToListFile, DistCpOptions options) throws IOException {
-    List<Path> sourcePaths = fetchFileList(options.getSourceFileListing());
-    DistCpOptions newOption = new DistCpOptions(sourcePaths, options.getTargetPath());
+  public void doBuildListing(Path pathToListFile, DistCpOptions options)
+      throws IOException {
+    List<Path> sourcePaths = fetchFileList(options.getSourceFileListing(),
+        getConf());
+    DistCpOptions newOption = new DistCpOptions(sourcePaths,
+        options.getTargetPath());
     newOption.setSyncFolder(options.shouldSyncFolder());
     newOption.setOverwrite(options.shouldOverwrite());
     newOption.setDeleteMissing(options.shouldDeleteMissing());
@@ -76,9 +79,10 @@ public class FileBasedCopyListing extends CopyListing {
     globbedListing.buildListing(pathToListFile, newOption);
   }
 
-  protected List<Path> fetchFileList(Path sourceListing) throws IOException {
+  protected static List<Path> fetchFileList(Path sourceListing,
+      Configuration conf) throws IOException {
     List<Path> result = new ArrayList<Path>();
-    FileSystem fs = sourceListing.getFileSystem(getConf());
+    FileSystem fs = sourceListing.getFileSystem(conf);
     BufferedReader input = null;
     try {
       input = new BufferedReader(new InputStreamReader(fs.open(sourceListing)));
