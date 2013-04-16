@@ -18,8 +18,6 @@
 
 package org.apache.hadoop.tools;
 
-import java.io.IOException;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileStatus;
@@ -30,6 +28,8 @@ import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.tools.util.DistCpUtils;
+
+import java.io.IOException;
 
 /**
  * The CopyListing abstraction is responsible for how the list of
@@ -129,7 +129,7 @@ public abstract class CopyListing extends Configured {
    * @throws IOException - Any issues while checking for duplicates and throws
    * @throws DuplicateFileException - if there are duplicates
    */
-  private void checkForDuplicates(Path pathToListFile)
+  protected void checkForDuplicates(Path pathToListFile)
       throws DuplicateFileException, IOException {
 
     Configuration config = getConf();
