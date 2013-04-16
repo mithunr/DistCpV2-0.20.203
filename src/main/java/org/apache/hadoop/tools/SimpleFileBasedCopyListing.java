@@ -1,11 +1,11 @@
 package org.apache.hadoop.tools;
 
+import java.io.IOException;
+import java.util.List;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.security.Credentials;
-
-import java.io.IOException;
-import java.util.List;
 
 /**
  *  This class does not do any check
@@ -17,7 +17,7 @@ public class SimpleFileBasedCopyListing extends CopyListing {
   public SimpleFileBasedCopyListing(Configuration configuration,
       Credentials credentials) {
     super(configuration, credentials);
-    simpleListing = new LenientSimpleCopyListing(getConf(), credentials) ;
+    simpleListing = new SimpleCopyListing(getConf(), credentials) ;
   }
 
   /** {@inheritDoc} */
