@@ -327,7 +327,7 @@
         <configuration>
           <forkMode>always</forkMode>
           <forkedProcessTimeoutInSeconds>600</forkedProcessTimeoutInSeconds>
-          <argLine>-javaagent:${settings.localRepository}/org/aspectj/aspectjweaver/1.6.7/aspectjweaver-1.6.7.jar -Xmx1024m</argLine>
+          <argLine>-javaagent:${settings.localRepository}/org/aspectj/aspectjweaver/1.6.7/aspectjweaver-1.6.7.jar -Xmx1024m -Djava.security.krb5.realm= -Djava.security.krb5.kdc=</argLine>
           <includes>
             <include>**/${system.test.prefix}Test*.java</include>
           </includes>
@@ -347,7 +347,7 @@
             </property>
             <property>
               <name>org.apache.commons.logging.simplelog.defaultlog</name>
-              <value>debug</value>
+              <value>info</value>
             </property>
           </systemProperties>
         </configuration>

@@ -54,7 +54,7 @@ public class DistCpOptions {
   }
 
   private int maxMaps = DistCpConstants.DEFAULT_MAPS;
-  private int mapBandwidth = DistCpConstants.DEFAULT_BANDWIDTH_MB;
+  private int mapBandwidth = DistCpConstants.DEFAULT_BANDWIDTH_KB;
 
   private String sslConfigurationFile;
 
@@ -289,20 +289,33 @@ public class DistCpOptions {
     this.maxMaps = maxMaps;
   }
 
-  /** Get the map bandwidth in MB
+  /** Get the map bandwidth in KB
    *
-   * @return Bandwidth in MB
+   * @return Bandwidth in KB
    */
   public int getMapBandwidth() {
     return mapBandwidth;
   }
 
   /**
-   * Set per map bandwidth
+   * Set per map bandwidth (MB)
    *
    * @param mapBandwidth - per map bandwidth
    */
   public void setMapBandwidth(int mapBandwidth) {
+    if (mapBandwidth <= 0) {
+      throw new IllegalArgumentException("Bandwidth " +
+          mapBandwidth + " is invalid (should be > 0)");
+    }
+    this.mapBandwidth = mapBandwidth * 1024;
+  }
+
+  /**
+   * Set per map bandwidth (MB)
+   *
+   * @param mapBandwidth - per map bandwidth
+   */
+  public void setMapBandwidthKB(int mapBandwidth) {
     if (mapBandwidth <= 0) {
       throw new IllegalArgumentException("Bandwidth " +
           mapBandwidth + " is invalid (should be > 0)");
@@ -499,7 +512,7 @@ public class DistCpOptions {
         String.valueOf(overwrite));
     DistCpOptionSwitch.addToConf(conf, DistCpOptionSwitch.SKIP_CRC,
         String.valueOf(skipCRC));
-    DistCpOptionSwitch.addToConf(conf, DistCpOptionSwitch.BANDWIDTH,
+    DistCpOptionSwitch.addToConf(conf, DistCpOptionSwitch.BANDWIDTH_KB,
         String.valueOf(mapBandwidth));
     DistCpOptionSwitch.addToConf(conf, DistCpOptionSwitch.PRESERVE_STATUS,
         DistCpUtils.packAttributes(preserveStatus));

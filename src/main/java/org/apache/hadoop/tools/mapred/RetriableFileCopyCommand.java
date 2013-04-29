@@ -39,8 +39,8 @@ import java.util.EnumSet;
  */
 public class RetriableFileCopyCommand extends RetriableCommand {
 
-  private static Log LOG = LogFactory.getLog(RetriableFileCopyCommand.class);
-  private static int BUFFER_SIZE = 8 * 1024;
+  private static final Log LOG = LogFactory.getLog(RetriableFileCopyCommand.class);
+  private static final int BUFFER_SIZE = 8 * 1024;
 
   /**
    * Constructor, taking a description of the action.
@@ -173,6 +173,8 @@ public class RetriableFileCopyCommand extends RetriableCommand {
         updateContextStatus(totalBytesRead, context, sourceFileStatus);
         bytesRead = inStream.read(buf);
       }
+      context.getCounter(CopyMapper.Counter.SLEEP_TIME_MS).
+          increment(inStream.getTotalSleepTime());
       LOG.info("STATS: " + inStream);
     } finally {
       if (mustCloseStream) {
@@ -217,17 +219,21 @@ public class RetriableFileCopyCommand extends RetriableCommand {
           throws IOException {
     try {
       FileSystem fs = path.getFileSystem(conf);
-      long bandwidthMB = conf.getInt(DistCpConstants.CONF_LABEL_BANDWIDTH_MB,
-              DistCpConstants.DEFAULT_BANDWIDTH_MB);
+      long bandwidthKB = getAllowedBandwidth(conf);
       return new ThrottledInputStream(new BufferedInputStream(fs.open(path)),
-              bandwidthMB * 1024 * 1024);
+          bandwidthKB * 1024);
     }
     catch (IOException e) {
       throw new CopyReadException(e);
     }
   }
 
-  private static short getReplicationFactor(
+  private static long getAllowedBandwidth(Configuration conf) {
+    return (long) conf.getInt(DistCpConstants.CONF_LABEL_BANDWIDTH_KB,
+        DistCpConstants.DEFAULT_BANDWIDTH_KB);
+  }
+
+    private static short getReplicationFactor(
           EnumSet<FileAttribute> fileAttributes,
           FileStatus sourceFile, FileSystem targetFS) {
     return fileAttributes.contains(FileAttribute.REPLICATION)?
