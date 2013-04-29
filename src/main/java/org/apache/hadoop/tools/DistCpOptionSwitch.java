@@ -159,7 +159,13 @@ public enum DistCpOptionSwitch {
    * Specify bandwidth per map in MB
    */
   BANDWIDTH(DistCpConstants.CONF_LABEL_BANDWIDTH_MB,
-      new Option("bandwidth", true, "Specify bandwidth per map in MB"));
+      new Option("bandwidth", true, "Specify bandwidth per map in MB")),
+
+  /**
+   * Specify bandwidth per map in MB
+   */
+  BANDWIDTH_KB(DistCpConstants.CONF_LABEL_BANDWIDTH_KB,
+      new Option("bandwidthKB", true, "Specify bandwidth per map in KB"));
 
   private final String confLabel;
   private final Option option;
