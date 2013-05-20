@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.hadoop.inmobi.tools</groupId>
   <artifactId>hadoop-distcp</artifactId>
-  <version>0.7-SNAPSHOT</version>
+  <version>0.7</version>
   <description>Hadoop Tool - Distributed Copy</description>
   <name>Hadoop Tool - Distributed Copy</name>
   <packaging>jar</packaging>
