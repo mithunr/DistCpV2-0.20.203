@@ -165,7 +165,7 @@ public class TestUniformSizeInputFormat {
     ArrayList<InputSplit> splits = new ArrayList<InputSplit>(numSplits);
     FileStatus value = new FileStatus();
     Text key = new Text();
-    final long targetsize = totalFileSize / numSplits;
+    final long targetsize = (long) Math.ceil(totalFileSize / numSplits);
     long pos = 0L;
     long last = 0L;
     long acc = 0L;
