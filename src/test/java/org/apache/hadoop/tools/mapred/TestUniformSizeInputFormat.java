@@ -37,6 +37,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -112,7 +113,9 @@ public class TestUniformSizeInputFormat {
     CopyListing.getCopyListing(configuration, CREDENTIALS, options).
         buildListing(listFile, options);
 
-    JobContext jobContext = new JobContext(configuration, new JobID());
+    JobContext jobContext = Mockito.mock(JobContext.class);
+    Mockito.when(jobContext.getConfiguration()).thenReturn(configuration);
+    Mockito.when(jobContext.getJobID()).thenReturn(new JobID());
     UniformSizeInputFormat uniformSizeInputFormat = new UniformSizeInputFormat();
     List<InputSplit> splits
             = uniformSizeInputFormat.getSplits(jobContext);
@@ -129,9 +132,12 @@ public class TestUniformSizeInputFormat {
     for (int i=0; i<splits.size(); ++i) {
       InputSplit split = splits.get(i);
       int currentSplitSize = 0;
-      final TaskAttemptContext taskAttemptContext
-              = new TaskAttemptContext(configuration,
-                                       new TaskAttemptID("", 0, true, 0, 0));
+      TaskAttemptID taskId = new TaskAttemptID("", 0, true, 0, 0);
+      final TaskAttemptContext taskAttemptContext = Mockito.mock
+        (TaskAttemptContext.class);
+      Mockito.when(taskAttemptContext.getConfiguration()).thenReturn
+        (configuration);
+      Mockito.when(taskAttemptContext.getTaskAttemptID()).thenReturn(taskId);
       RecordReader<Text, FileStatus> recordReader = uniformSizeInputFormat.createRecordReader(
               split, taskAttemptContext);
       recordReader.initialize(split, taskAttemptContext);
