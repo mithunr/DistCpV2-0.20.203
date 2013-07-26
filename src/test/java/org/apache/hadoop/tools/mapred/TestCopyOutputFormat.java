@@ -26,6 +26,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.tools.DistCpConstants;
 import org.junit.Test;
 import org.junit.Assert;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 
@@ -75,8 +76,11 @@ public class TestCopyOutputFormat {
   @Test
   public void testGetOutputCommitter() {
     try {
-      TaskAttemptContext context = new TaskAttemptContext(new Configuration(),
-        new TaskAttemptID("200707121733", 1, false, 1, 1));
+      TaskAttemptContext context = Mockito.mock(TaskAttemptContext.class);
+      Mockito.when(context.getTaskAttemptID()).thenReturn(new TaskAttemptID
+        ("200707121733", 1, false, 1, 1));
+      Configuration conf = new Configuration();
+      Mockito.when(context.getConfiguration()).thenReturn(conf);
       context.getConfiguration().set("mapred.output.dir", "/out");
       Assert.assertTrue(new CopyOutputFormat().getOutputCommitter(context) instanceof CopyCommitter);
     } catch (IOException e) {
@@ -89,26 +93,32 @@ public class TestCopyOutputFormat {
   public void testCheckOutputSpecs() {
     try {
       OutputFormat outputFormat = new CopyOutputFormat();
-      Job job = new Job(new Configuration());
+      Configuration conf = new Configuration();
+      Job job = new Job(conf);
       JobID jobID = new JobID("200707121733", 1);
 
       try {
-        JobContext context = new JobContext(job.getConfiguration(), jobID);
+        JobContext context = Mockito.mock(JobContext.class);
+        Mockito.when(context.getConfiguration()).thenReturn(job.getConfiguration());
+        Mockito.when(context.getJobID()).thenReturn(jobID);
         outputFormat.checkOutputSpecs(context);
         Assert.fail("No checking for invalid work/commit path");
       } catch (IllegalStateException ignore) { }
 
       CopyOutputFormat.setWorkingDirectory(job, new Path("/tmp/work"));
       try {
-        JobContext context = new JobContext(job.getConfiguration(), jobID);
-        outputFormat.checkOutputSpecs(context);
+        JobContext context = Mockito.mock(JobContext.class);
+        Mockito.when(context.getConfiguration()).thenReturn(job.getConfiguration());
+        Mockito.when(context.getJobID()).thenReturn(jobID);        outputFormat.checkOutputSpecs(context);
         Assert.fail("No checking for invalid commit path");
       } catch (IllegalStateException ignore) { }
 
       job.getConfiguration().set(DistCpConstants.CONF_LABEL_TARGET_WORK_PATH, "");
       CopyOutputFormat.setCommitDirectory(job, new Path("/tmp/commit"));
       try {
-        JobContext context = new JobContext(job.getConfiguration(), jobID);
+        JobContext context = Mockito.mock(JobContext.class);
+        Mockito.when(context.getConfiguration()).thenReturn(job.getConfiguration());
+        Mockito.when(context.getJobID()).thenReturn(jobID);
         outputFormat.checkOutputSpecs(context);
         Assert.fail("No checking for invalid work path");
       } catch (IllegalStateException ignore) { }
@@ -116,9 +126,12 @@ public class TestCopyOutputFormat {
       CopyOutputFormat.setWorkingDirectory(job, new Path("/tmp/work"));
       CopyOutputFormat.setCommitDirectory(job, new Path("/tmp/commit"));
       try {
-        JobContext context = new JobContext(job.getConfiguration(), jobID);
+        JobContext context = Mockito.mock(JobContext.class);
+        Mockito.when(context.getConfiguration()).thenReturn(job.getConfiguration());
+        Mockito.when(context.getJobID()).thenReturn(jobID);
         outputFormat.checkOutputSpecs(context);
       } catch (IllegalStateException ignore) {
+        ignore.printStackTrace();
         Assert.fail("Output spec check failed.");
       }
 

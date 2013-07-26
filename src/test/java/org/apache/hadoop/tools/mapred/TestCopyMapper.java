@@ -39,6 +39,9 @@ import org.apache.hadoop.tools.util.DistCpUtils;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -157,10 +160,37 @@ public class TestCopyMapper {
   }
 
   private static Mapper<Text, FileStatus, Text, Text>.Context
-  getMapperContext(CopyMapper copyMapper, StatusReporter reporter, InMemoryWriter writer)
+  getMapperContext(CopyMapper copyMapper, final StatusReporter reporter,
+                   final InMemoryWriter writer)
           throws IOException, InterruptedException {
-    return copyMapper.new Context(getConfiguration(), new TaskAttemptID(), null,
-            writer, null, reporter, null);
+    Mapper.Context ctx = Mockito.mock(Mapper.Context.class);
+    Mockito.when(ctx.getConfiguration()).thenReturn(getConfiguration());
+    Mockito.doAnswer(new Answer() {
+      @Override
+      public Object answer(InvocationOnMock invocationOnMock) throws
+        Throwable {
+        writer.write((Text)invocationOnMock.getArguments()[0],
+          (Text)invocationOnMock.getArguments()[1]);
+        return null;
+      }
+    }).when(ctx).write(Mockito.any(), Mockito.any());
+
+    Mockito.doAnswer(new Answer<Counter>() {
+      @Override
+      public Counter answer(InvocationOnMock invocationOnMock) throws Throwable {
+        return reporter.getCounter((Enum<?>) invocationOnMock.getArguments()[0]);
+      }
+    }).when(ctx).getCounter(Mockito.any(CopyMapper.Counter.class));
+    final TaskAttemptID id = Mockito.mock(TaskAttemptID.class);
+    Mockito.when(id.toString()).thenReturn("attempt1");
+    Mockito.doAnswer(new Answer<TaskAttemptID>(){
+
+      @Override
+      public TaskAttemptID answer(InvocationOnMock invocationOnMock) throws Throwable {
+        return id;
+      }
+    }).when(ctx).getTaskAttemptID();
+    return ctx;
   }
 
 

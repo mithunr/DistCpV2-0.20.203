@@ -31,7 +31,6 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.tools.CopyListing;
 import org.apache.hadoop.tools.DistCpOptions;
-import org.apache.hadoop.tools.mapred.lib.DynamicInputFormat;
 import org.apache.hadoop.security.Credentials;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -40,6 +39,8 @@ import org.junit.Test;
 import java.io.DataOutputStream;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.mockito.Mockito.*;
 
 public class TestDynamicInputFormat {
   private static final Log LOG = LogFactory.getLog(TestDynamicInputFormat.class);
@@ -112,7 +113,10 @@ public class TestDynamicInputFormat {
             new Path(cluster.getFileSystem().getUri().toString()
                     +"/tmp/testDynInputFormat/fileList.seq"), options);
 
-    JobContext jobContext = new JobContext(configuration, new JobID());
+    JobID jobId =  new JobID();
+    JobContext jobContext = mock(JobContext.class);
+    when(jobContext.getConfiguration()).thenReturn(configuration);
+    when(jobContext.getJobID()).thenReturn(jobId);
     DynamicInputFormat<Text, FileStatus> inputFormat =
         new DynamicInputFormat<Text, FileStatus>();
     List<InputSplit> splits = inputFormat.getSplits(jobContext);
@@ -121,11 +125,11 @@ public class TestDynamicInputFormat {
     int taskId = 0;
 
     for (InputSplit split : splits) {
-      final TaskAttemptContext taskAttemptContext = new TaskAttemptContext(
-              jobContext.getConfiguration(), new TaskAttemptID("", 0, true,
-                                                               taskId, 0)
-      );
-
+      TaskAttemptID tId = new TaskAttemptID("", 0, true, taskId, 0);
+      final TaskAttemptContext taskAttemptContext = mock(TaskAttemptContext
+        .class);
+      when(taskAttemptContext.getConfiguration()).thenReturn(configuration);
+      when(taskAttemptContext.getTaskAttemptID()).thenReturn(tId);
       RecordReader<Text, FileStatus> recordReader =
            inputFormat.createRecordReader(split, taskAttemptContext);
       recordReader.initialize(splits.get(0), taskAttemptContext);
