@@ -368,6 +368,35 @@
           </execution>
         </executions>
       </plugin>
+      <!-- Generate debian package-->
+      <plugin>
+        <artifactId>jdeb</artifactId>
+        <groupId>org.vafer</groupId>
+        <version>0.9</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>jdeb</goal>
+            </goals>
+            <configuration>
+              <installDir>/usr/local/inmobi-distcp-${version}-${deb.tag}</installDir>
+              <deb>${project.build.directory}/${artifactId}_${version}_${deb.tag}.deb</deb>
+              <dataSet>
+                <data>
+                  <src>target/${artifactId}-${version}-${hadoop.env.version}.jar</src>
+                  <type>file</type>
+                  <mapper>
+                    <type>perm</type>
+                    <prefix>/usr/local/inmobi-distcp-${version}-${deb.tag}</prefix>
+                  </mapper>
+                </data>
+              </dataSet>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
     </plugins>
     <pluginManagement>
       <plugins>
@@ -397,6 +426,7 @@
         <hadoop.version>0.20.2-cdh3u5</hadoop.version>
         <slf4j.version>1.4.3</slf4j.version>
         <hadoop.env.version>cdh3</hadoop.env.version>
+        <deb.tag>cdh3</deb.tag>
       </properties>
       <dependencies>
         <dependency>
@@ -431,6 +461,7 @@
         <hadoop2mr1.version>2.0.0-mr1-cdh4.3.0</hadoop2mr1.version>
         <slf4j.version>1.4.3</slf4j.version>
         <hadoop.env.version>cdh4</hadoop.env.version>
+        <deb.tag>cdh4</deb.tag>
       </properties>
       <dependencies>
         <dependency>
