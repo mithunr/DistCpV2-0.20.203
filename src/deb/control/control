@@ -1,4 +1,4 @@
-Package: Inmobi Distcp
+Package: hadoop-distcp
 Version: [[project.version]] 
 Section:  misc
 Priority: high
