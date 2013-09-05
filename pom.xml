@@ -317,7 +317,6 @@
           </execution>
         </executions>
         <configuration>
-          <classifier>${hadoop.env.version}</classifier>
           <archive>
             <manifest>
               <mainClass>org.apache.hadoop.tools.DistCp</mainClass>
@@ -380,15 +379,15 @@
               <goal>jdeb</goal>
             </goals>
             <configuration>
-              <installDir>/usr/local/inmobi-distcp-${version}-${deb.tag}</installDir>
-              <deb>${project.build.directory}/${artifactId}_${version}_${deb.tag}.deb</deb>
+              <installDir>/usr/local/inmobi-distcp-${version}</installDir>
+              <deb>${project.build.directory}/${artifactId}_${version}.deb</deb>
               <dataSet>
                 <data>
-                  <src>target/${artifactId}-${version}-${hadoop.env.version}.jar</src>
+                  <src>target/${artifactId}-${version}.jar</src>
                   <type>file</type>
                   <mapper>
                     <type>perm</type>
-                    <prefix>/usr/local/inmobi-distcp-${version}-${deb.tag}</prefix>
+                    <prefix>/usr/local/inmobi-distcp-${version}</prefix>
                   </mapper>
                 </data>
               </dataSet>
@@ -425,8 +424,6 @@
       <properties>
         <hadoop.version>0.20.2-cdh3u5</hadoop.version>
         <slf4j.version>1.4.3</slf4j.version>
-        <hadoop.env.version>cdh3</hadoop.env.version>
-        <deb.tag>cdh3</deb.tag>
       </properties>
       <dependencies>
         <dependency>
@@ -460,8 +457,6 @@
         <hadoop.version>2.0.0-cdh4.3.0</hadoop.version>
         <hadoop2mr1.version>2.0.0-mr1-cdh4.3.0</hadoop2mr1.version>
         <slf4j.version>1.4.3</slf4j.version>
-        <hadoop.env.version>cdh4</hadoop.env.version>
-        <deb.tag>cdh4</deb.tag>
       </properties>
       <dependencies>
         <dependency>

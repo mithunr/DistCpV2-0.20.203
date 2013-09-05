@@ -32,6 +32,7 @@ import org.apache.hadoop.tools.DistCpOptionSwitch;
 import org.apache.hadoop.tools.DistCpOptions;
 import org.apache.hadoop.tools.DistCpOptions.FileAttribute;
 import org.apache.hadoop.tools.util.DistCpUtils;
+import org.apache.hadoop.tools.util.HadoopCompat;
 import org.apache.hadoop.util.StringUtils;
 
 import java.io.*;
@@ -298,7 +299,7 @@ public class CopyMapper extends Mapper<Text, FileStatus, Text, Text> {
 
   private static void incrementCounter(Context context, Counter counter,
                                        long value) {
-    context.getCounter(counter).increment(value);
+    HadoopCompat.incrementCounter(HadoopCompat.getCounter(context, counter), value);
   }
 
   private boolean skipFile(FileSystem sourceFS, FileStatus source, Path target)
