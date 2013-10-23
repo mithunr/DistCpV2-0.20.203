@@ -379,7 +379,7 @@
               <goal>jdeb</goal>
             </goals>
             <configuration>
-              <installDir>/usr/local/inmobi-distcp-${version}</installDir>
+              <installDir>/usr/local/lib/inmobi</installDir>
               <deb>${project.build.directory}/${artifactId}_${version}.deb</deb>
               <dataSet>
                 <data>
@@ -387,7 +387,7 @@
                   <type>file</type>
                   <mapper>
                     <type>perm</type>
-                    <prefix>/usr/local/inmobi-distcp-${version}</prefix>
+                    <prefix>/usr/local/lib/inmobi</prefix>
                   </mapper>
                 </data>
               </dataSet>
