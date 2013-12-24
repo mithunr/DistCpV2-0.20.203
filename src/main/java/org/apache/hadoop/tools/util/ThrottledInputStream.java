@@ -88,11 +88,11 @@ public class ThrottledInputStream extends InputStream {
   }
 
   public long getBytesPerSec() {
-    long elapsed = (System.currentTimeMillis() - startTime) / 1000;
-    if (elapsed == 0) {
+    long elapsed = System.currentTimeMillis() - startTime;
+    if (elapsed <= 1000) {
       return bytesRead;
     } else {
-      return bytesRead / elapsed;
+      return (bytesRead * 1000)/ elapsed;
     }
   }
 
