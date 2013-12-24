@@ -93,7 +93,7 @@ public class ThrottledInputStream extends InputStream {
     if (elapsedTimeInMilliSecs <= MILLISECONDS_IN_SEC) {
       return bytesRead;
     } else {
-      return (bytesRead * 1000)/ elapsedTimeInMilliSecs;
+      return (bytesRead * MILLISECONDS_IN_SEC)/ elapsedTimeInMilliSecs;
     }
   }
 
