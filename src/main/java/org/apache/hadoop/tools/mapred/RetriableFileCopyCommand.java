@@ -112,7 +112,7 @@ public class RetriableFileCopyCommand extends RetriableCommand {
             tmpTargetPath, true, BUFFER_SIZE,
             getReplicationFactor(fileAttributes, sourceFileStatus, targetFS),
             getBlockSize(fileAttributes, sourceFileStatus, targetFS), context));
-    return copyBytes(sourceFileStatus, outStream, BUFFER_SIZE, true, context);
+    return copyBytes(sourceFileStatus, outStream, BUFFER_SIZE, context);
   }
 
   private void compareFileLengths(FileStatus sourceFileStatus, Path target,
@@ -158,8 +158,7 @@ public class RetriableFileCopyCommand extends RetriableCommand {
   }
 
   private long copyBytes(FileStatus sourceFileStatus, OutputStream outStream,
-                         int bufferSize, boolean mustCloseStream,
-                         Mapper.Context context) throws IOException {
+                         int bufferSize, Mapper.Context context) throws IOException {
     Path source = sourceFileStatus.getPath();
     byte buf[] = new byte[bufferSize];
     ThrottledInputStream inStream = null;
@@ -178,15 +177,12 @@ public class RetriableFileCopyCommand extends RetriableCommand {
         CopyMapper.Counter.SLEEP_TIME_MS), inStream.getTotalSleepTime());
       LOG.info("STATS: " + inStream);
     } finally {
-      if (mustCloseStream) {
-        IOUtils.cleanup(LOG, inStream);
-        try {
-          outStream.close();
-        }
-        catch(IOException exception) {
-          LOG.error("Could not close output-stream. ", exception);
-          throw exception;
-        }
+      IOUtils.cleanup(LOG, inStream);
+      try {
+        outStream.close();
+      } catch(IOException exception) {
+        LOG.error("Could not close output-stream. ", exception);
+        throw exception;
       }
     }
 
