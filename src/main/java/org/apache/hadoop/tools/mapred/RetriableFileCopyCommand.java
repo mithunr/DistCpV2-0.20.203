@@ -18,6 +18,7 @@
 
 package org.apache.hadoop.tools.mapred;
 
+import org.apache.hadoop.tools.util.HadoopCompat;
 import org.apache.hadoop.tools.util.RetriableCommand;
 import org.apache.hadoop.tools.util.ThrottledInputStream;
 import org.apache.hadoop.tools.util.DistCpUtils;
@@ -77,7 +78,7 @@ public class RetriableFileCopyCommand extends RetriableCommand {
           throws IOException {
 
     Path tmpTargetPath = getTmpFile(target, context);
-    final Configuration configuration = context.getConfiguration();
+    final Configuration configuration = HadoopCompat.getTaskConfiguration(context);
     FileSystem targetFS = target.getFileSystem(configuration);
 
     try {
@@ -147,7 +148,7 @@ public class RetriableFileCopyCommand extends RetriableCommand {
   }
 
   private Path getTmpFile(Path target, Mapper.Context context) {
-    Path targetWorkPath = new Path(context.getConfiguration().
+    Path targetWorkPath = new Path(HadoopCompat.getTaskConfiguration(context).
         get(DistCpConstants.CONF_LABEL_TARGET_WORK_PATH));
 
     Path root = target.equals(targetWorkPath)? targetWorkPath.getParent() : targetWorkPath;
@@ -165,7 +166,7 @@ public class RetriableFileCopyCommand extends RetriableCommand {
     long totalBytesRead = 0;
 
     try {
-      inStream = getInputStream(source, context.getConfiguration());
+      inStream = getInputStream(source, HadoopCompat.getTaskConfiguration(context));
       int bytesRead = readBytes(inStream, buf);
       while (bytesRead >= 0) {
         totalBytesRead += bytesRead;
@@ -173,8 +174,8 @@ public class RetriableFileCopyCommand extends RetriableCommand {
         updateContextStatus(totalBytesRead, context, sourceFileStatus);
         bytesRead = inStream.read(buf);
       }
-      context.getCounter(CopyMapper.Counter.SLEEP_TIME_MS).
-          increment(inStream.getTotalSleepTime());
+      HadoopCompat.incrementCounter(HadoopCompat.getCounter(context,
+        CopyMapper.Counter.SLEEP_TIME_MS), inStream.getTotalSleepTime());
       LOG.info("STATS: " + inStream);
     } finally {
       if (mustCloseStream) {
@@ -202,7 +203,7 @@ public class RetriableFileCopyCommand extends RetriableCommand {
             .append('/')
         .append(DistCpUtils.getStringDescriptionFor(sourceFileStatus.getLen()))
             .append(']');
-    context.setStatus(message.toString());
+    HadoopCompat.setStatus(context, message.toString());
   }
 
   private static int readBytes(InputStream inStream, byte buf[])

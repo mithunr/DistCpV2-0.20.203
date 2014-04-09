@@ -37,6 +37,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -112,26 +113,29 @@ public class TestUniformSizeInputFormat {
     CopyListing.getCopyListing(configuration, CREDENTIALS, options).
         buildListing(listFile, options);
 
-    JobContext jobContext = new JobContext(configuration, new JobID());
+    JobContext jobContext = Mockito.mock(JobContext.class);
+    Mockito.when(jobContext.getConfiguration()).thenReturn(configuration);
+    Mockito.when(jobContext.getJobID()).thenReturn(new JobID());
     UniformSizeInputFormat uniformSizeInputFormat = new UniformSizeInputFormat();
     List<InputSplit> splits
             = uniformSizeInputFormat.getSplits(jobContext);
 
-    List<InputSplit> legacySplits = legacyGetSplits(listFile, nMaps);
-
+    //Removing the legacy check - Refer HADOOP-9230
     int sizePerMap = totalFileSize/nMaps;
 
     checkSplits(listFile, splits);
-    checkAgainstLegacy(splits, legacySplits);
 
     int doubleCheckedTotalSize = 0;
     int previousSplitSize = -1;
     for (int i=0; i<splits.size(); ++i) {
       InputSplit split = splits.get(i);
       int currentSplitSize = 0;
-      final TaskAttemptContext taskAttemptContext
-              = new TaskAttemptContext(configuration,
-                                       new TaskAttemptID("", 0, true, 0, 0));
+      TaskAttemptID taskId = new TaskAttemptID("", 0, true, 0, 0);
+      final TaskAttemptContext taskAttemptContext = Mockito.mock
+        (TaskAttemptContext.class);
+      Mockito.when(taskAttemptContext.getConfiguration()).thenReturn
+        (configuration);
+      Mockito.when(taskAttemptContext.getTaskAttemptID()).thenReturn(taskId);
       RecordReader<Text, FileStatus> recordReader = uniformSizeInputFormat.createRecordReader(
               split, taskAttemptContext);
       recordReader.initialize(split, taskAttemptContext);
@@ -153,56 +157,6 @@ public class TestUniformSizeInputFormat {
     Assert.assertEquals(totalFileSize, doubleCheckedTotalSize);
   }
 
-  // From
-  // http://svn.apache.org/repos/asf/hadoop/mapreduce/trunk/src/tools/org/apache/hadoop/tools/DistCp.java
-  private List<InputSplit> legacyGetSplits(Path listFile, int numSplits)
-      throws IOException {
-
-    FileSystem fs = cluster.getFileSystem();
-    FileStatus srcst = fs.getFileStatus(listFile);
-    Configuration conf = fs.getConf();
-
-    ArrayList<InputSplit> splits = new ArrayList<InputSplit>(numSplits);
-    FileStatus value = new FileStatus();
-    Text key = new Text();
-    final long targetsize = totalFileSize / numSplits;
-    long pos = 0L;
-    long last = 0L;
-    long acc = 0L;
-    long cbrem = srcst.getLen();
-    SequenceFile.Reader sl = null;
-
-    LOG.info("Average bytes per map: " + targetsize +
-        ", Number of maps: " + numSplits + ", total size: " + totalFileSize);
-
-    try {
-      sl = new SequenceFile.Reader(fs, listFile, conf);
-      for (; sl.next(key, value); last = sl.getPosition()) {
-        // if adding this split would put this split past the target size,
-        // cut the last split and put this next file in the next split.
-        if (acc + value.getLen() > targetsize && acc != 0) {
-          long splitsize = last - pos;
-          FileSplit fileSplit = new FileSplit(listFile, pos, splitsize, (String[]) null);
-          LOG.info ("Creating split : " + fileSplit + ", bytes in split: " + splitsize);
-          splits.add(fileSplit);
-          cbrem -= splitsize;
-          pos = last;
-          acc = 0L;
-        }
-        acc += value.getLen();
-      }
-    }
-    finally {
-      IOUtils.closeStream(sl);
-    }
-    if (cbrem != 0) {
-      FileSplit fileSplit = new FileSplit(listFile, pos, cbrem, (String[]) null);
-      LOG.info ("Creating split : " + fileSplit + ", bytes in split: " + cbrem);
-      splits.add(fileSplit);
-    }
-
-    return splits;
-  }
 
   private void checkSplits(Path listFile, List<InputSplit> splits) throws IOException {
     long lastEnd = 0;
@@ -229,17 +183,6 @@ public class TestUniformSizeInputFormat {
     }
   }
 
-  private void checkAgainstLegacy(List<InputSplit> splits,
-                                  List<InputSplit> legacySplits)
-      throws IOException, InterruptedException {
-
-    Assert.assertEquals(legacySplits.size(), splits.size());
-    for (int index = 0; index < splits.size(); index++) {
-      FileSplit fileSplit = (FileSplit) splits.get(index);
-      FileSplit legacyFileSplit = (FileSplit) legacySplits.get(index);
-      Assert.assertEquals(fileSplit.getStart(), legacyFileSplit.getStart());
-    }
-  }
 
   @Test
   public void testGetSplits() throws Exception {

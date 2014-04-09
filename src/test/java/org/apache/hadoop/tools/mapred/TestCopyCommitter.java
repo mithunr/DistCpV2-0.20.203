@@ -36,6 +36,9 @@ import org.apache.hadoop.tools.util.TestDistCpUtils;
 import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.mapred.MockJobTracker;
 import org.junit.*;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -57,7 +60,7 @@ public class TestCopyCommitter {
   @BeforeClass
   public static void create() throws IOException {
     config = MockJobTracker.getJobForClient().getConfiguration();
-    counterProvider = new CounterProvider(config, EMPTY_COUNTERS);
+    counterProvider = new CounterProvider(EMPTY_COUNTERS);
     config.setLong(DistCpConstants.CONF_LABEL_TOTAL_BYTES_TO_BE_COPIED, 0);
     cluster = new MiniDFSCluster(config, 1, true, null);
   }
@@ -66,9 +69,6 @@ public class TestCopyCommitter {
   public static void destroy() {
     if (cluster != null) {
       cluster.shutdown();
-    }
-    if (counterProvider != null) {
-      counterProvider.shutdown();
     }
   }
 
@@ -102,16 +102,30 @@ public class TestCopyCommitter {
   public void testNoCommitAction() {
 
     TaskAttemptContext taskAttemptContext = getTaskAttemptContext(config);
-    JobContext jobContext = new JobContext(taskAttemptContext.getConfiguration(),
-        taskAttemptContext.getTaskAttemptID().getJobID());
+    JobContext jobContext = Mockito.mock(JobContext.class);
+    Mockito.when(jobContext.getConfiguration()).thenReturn(config);
+    JobID jobID = new JobID();
+    Mockito.when(jobContext.getJobID()).thenReturn(jobID);
+    final String[] statusString = new String[1];
+    try {
+      Mockito.doAnswer(new Answer() {
+        @Override
+        public Object answer(InvocationOnMock invocationOnMock) throws
+          Throwable {
+          statusString[0] = (String) invocationOnMock.getArguments()[0];
+          return null;  //To change body of implemented methods use File | Settings | File Templates.
+        }
+      }).when(taskAttemptContext).setStatus(Mockito.anyString());
+    } catch (Throwable e) {
+    }
     try {
       OutputCommitter committer = new CopyCommitter(null, taskAttemptContext);
       committer.commitJob(jobContext);
-      Assert.assertEquals(taskAttemptContext.getStatus(), "Commit Successful");
+      Assert.assertEquals(statusString[0], "Commit Successful");
 
       //Test for idempotent commit
       committer.commitJob(jobContext);
-      Assert.assertEquals(taskAttemptContext.getStatus(), "Commit Successful");
+      Assert.assertEquals(statusString[0], "Commit Successful");
     } catch (IOException e) {
       LOG.error("Exception encountered ", e);
       Assert.fail("Commit failed");
@@ -131,12 +145,27 @@ public class TestCopyCommitter {
 
     try {
       TaskAttemptContext taskAttemptContext = getTaskAttemptContext(config);
-      JobContext jobContext = new JobContext(taskAttemptContext.getConfiguration(),
-          taskAttemptContext.getTaskAttemptID().getJobID());
+      JobContext jobContext = Mockito.mock(JobContext.class);
+      Mockito.when(jobContext.getConfiguration()).thenReturn(config);
+      JobID jobID = new JobID();
+      Mockito.when(jobContext.getJobID()).thenReturn(jobID);
+      final String[] statusString = new String[1];
+      try {
+        Mockito.doAnswer(new Answer() {
+          @Override
+          public Object answer(InvocationOnMock invocationOnMock) throws
+            Throwable {
+            LOG.info("XXXX  crap I am called now " + invocationOnMock.getArguments()[0]);
+            statusString[0] = (String) invocationOnMock.getArguments()[0];
+            return null;  //To change body of implemented methods use File | Settings | File Templates.
+          }
+        }).when(taskAttemptContext).setStatus(Mockito.anyString());
+      } catch (Throwable e) {
+      }
       try {
         OutputCommitter committer = new CopyCommitter(null, taskAttemptContext);
         committer.commitJob(jobContext);
-        Assert.assertEquals(taskAttemptContext.getStatus(), "Commit Successful");
+        Assert.assertEquals(statusString[0], "Commit Successful");
       } catch (IOException e) {
         LOG.error("Exception encountered ", e);
         Assert.fail("Commit failed");
@@ -150,8 +179,11 @@ public class TestCopyCommitter {
   @Test
   public void testPreserveStatus() {
     TaskAttemptContext taskAttemptContext = getTaskAttemptContext(config);
-    JobContext jobContext = new JobContext(taskAttemptContext.getConfiguration(),
-        taskAttemptContext.getTaskAttemptID().getJobID());
+
+    JobContext jobContext = Mockito.mock(JobContext.class);
+    Mockito.when(jobContext.getConfiguration()).thenReturn(config);
+    JobID jobID = new JobID();
+    Mockito.when(jobContext.getJobID()).thenReturn(jobID);
     Configuration conf = jobContext.getConfiguration();
 
 
@@ -167,7 +199,7 @@ public class TestCopyCommitter {
       targetBase = TestDistCpUtils.createTestSetup(fs, initialPerm);
 
       DistCpOptions options = new DistCpOptions(Arrays.asList(new Path(sourceBase)),
-          new Path("/out"));
+        new Path("/out"));
       options.preserve(FileAttribute.PERMISSION);
       options.appendToConf(conf);
 
@@ -200,8 +232,10 @@ public class TestCopyCommitter {
   @Test
   public void testDeleteMissing() {
     TaskAttemptContext taskAttemptContext = getTaskAttemptContext(config);
-    JobContext jobContext = new JobContext(taskAttemptContext.getConfiguration(),
-        taskAttemptContext.getTaskAttemptID().getJobID());
+    JobContext jobContext = Mockito.mock(JobContext.class);
+    Mockito.when(jobContext.getConfiguration()).thenReturn(config);
+    JobID jobID = new JobID();
+    Mockito.when(jobContext.getJobID()).thenReturn(jobID);
     Configuration conf = jobContext.getConfiguration();
 
 
@@ -217,7 +251,7 @@ public class TestCopyCommitter {
       fs.rename(new Path(targetBaseAdd), new Path(targetBase));
 
       DistCpOptions options = new DistCpOptions(Arrays.asList(new Path(sourceBase)),
-          new Path("/out"));
+        new Path("/out"));
       options.setSyncFolder(true);
       options.setDeleteMissing(true);
       options.appendToConf(conf);
@@ -257,8 +291,10 @@ public class TestCopyCommitter {
   @Test
   public void testDeleteMissingFlatInterleavedFiles() {
     TaskAttemptContext taskAttemptContext = getTaskAttemptContext(config);
-    JobContext jobContext = new JobContext(taskAttemptContext.getConfiguration(),
-        taskAttemptContext.getTaskAttemptID().getJobID());
+    JobContext jobContext = Mockito.mock(JobContext.class);
+    Mockito.when(jobContext.getConfiguration()).thenReturn(config);
+    JobID jobID = new JobID();
+    Mockito.when(jobContext.getJobID()).thenReturn(jobID);
     Configuration conf = jobContext.getConfiguration();
 
 
@@ -285,8 +321,8 @@ public class TestCopyCommitter {
       TestDistCpUtils.createFile(fs, targetBase + "/9");
       TestDistCpUtils.createFile(fs, targetBase + "/A");
 
-      DistCpOptions options = new DistCpOptions(Arrays.asList(new Path(sourceBase)), 
-          new Path("/out"));
+      DistCpOptions options = new DistCpOptions(Arrays.asList(new Path(sourceBase)),
+        new Path("/out"));
       options.setSyncFolder(true);
       options.setDeleteMissing(true);
       options.appendToConf(conf);
@@ -322,8 +358,10 @@ public class TestCopyCommitter {
   @Test
   public void testAtomicCommitMissingFinal() {
     TaskAttemptContext taskAttemptContext = getTaskAttemptContext(config);
-    JobContext jobContext = new JobContext(taskAttemptContext.getConfiguration(),
-        taskAttemptContext.getTaskAttemptID().getJobID());
+    JobContext jobContext = Mockito.mock(JobContext.class);
+    Mockito.when(jobContext.getConfiguration()).thenReturn(config);
+    JobID jobID = new JobID();
+    Mockito.when(jobContext.getJobID()).thenReturn(jobID);
     Configuration conf = jobContext.getConfiguration();
 
 
@@ -338,6 +376,8 @@ public class TestCopyCommitter {
       conf.set(DistCpConstants.CONF_LABEL_TARGET_WORK_PATH, workPath);
       conf.set(DistCpConstants.CONF_LABEL_TARGET_FINAL_PATH, finalPath);
       conf.setBoolean(DistCpConstants.CONF_LABEL_ATOMIC_COPY, true);
+      //XXX set label to false explicitly, conf is not mixed up
+      conf.setBoolean(DistCpConstants.CONF_LABEL_DELETE_MISSING, false);
 
       Assert.assertTrue(fs.exists(new Path(workPath)));
       Assert.assertFalse(fs.exists(new Path(finalPath)));
@@ -362,8 +402,10 @@ public class TestCopyCommitter {
   @Test
   public void testAtomicCommitExistingFinal() {
     TaskAttemptContext taskAttemptContext = getTaskAttemptContext(config);
-    JobContext jobContext = new JobContext(taskAttemptContext.getConfiguration(),
-        taskAttemptContext.getTaskAttemptID().getJobID());
+    JobContext jobContext = Mockito.mock(JobContext.class, Mockito.RETURNS_DEEP_STUBS);
+    Mockito.when(jobContext.getConfiguration()).thenReturn(config);
+    JobID jobID = new JobID();
+    Mockito.when(jobContext.getJobID()).thenReturn(jobID);
     Configuration conf = jobContext.getConfiguration();
 
 
@@ -379,6 +421,8 @@ public class TestCopyCommitter {
       conf.set(DistCpConstants.CONF_LABEL_TARGET_WORK_PATH, workPath);
       conf.set(DistCpConstants.CONF_LABEL_TARGET_FINAL_PATH, finalPath);
       conf.setBoolean(DistCpConstants.CONF_LABEL_ATOMIC_COPY, true);
+      //XXX set label to false explicitly, conf is not mixed up
+      conf.setBoolean(DistCpConstants.CONF_LABEL_DELETE_MISSING, false);
 
       Assert.assertTrue(fs.exists(new Path(workPath)));
       Assert.assertTrue(fs.exists(new Path(finalPath)));
@@ -401,8 +445,11 @@ public class TestCopyCommitter {
   }
 
   private TaskAttemptContext getTaskAttemptContext(Configuration conf) {
-    return new TaskAttemptContext(conf,
-        new TaskAttemptID("200707121733", 1, false, 1, 1));
+    TaskAttemptContext context = Mockito.mock(TaskAttemptContext.class);
+    Mockito.when(context.getConfiguration()).thenReturn(conf);
+    TaskAttemptID taskId = new TaskAttemptID("200707121733", 1, false, 1, 1);
+    Mockito.when(context.getTaskAttemptID()).thenReturn(taskId);
+    return context;
   }
 
   private boolean checkDirectoryPermissions(FileSystem fs, String targetBase,
@@ -436,10 +483,9 @@ public class TestCopyCommitter {
       CounterGroup grp = a.getGroup("abc");
       Counter cntr = grp.findCounter("counter");
       cntr.increment(100);
-      CounterProvider cp = new CounterProvider(job.getConfiguration(), a);
+      CounterProvider cp = new CounterProvider(a);
       job.submit();
       Assert.assertEquals(job.getCounters(), a);
-      cp.shutdown();
     } catch (Exception e) {
       LOG.error("Exception encountered ", e);
     }
