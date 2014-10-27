@@ -167,17 +167,6 @@ public class OptionsParser {
       }
     }
 
-    if (command.hasOption(DistCpOptionSwitch.BANDWIDTH_KB.getSwitch())) {
-      try {
-        Integer mapBandwidth = Integer.parseInt(
-            getVal(command, DistCpOptionSwitch.BANDWIDTH_KB.getSwitch()).trim());
-        option.setMapBandwidthKB(mapBandwidth);
-      } catch (NumberFormatException e) {
-        throw new IllegalArgumentException("Bandwidth specified is invalid: " +
-            getVal(command, DistCpOptionSwitch.BANDWIDTH_KB.getSwitch()), e);
-      }
-    }
-
     if (command.hasOption(DistCpOptionSwitch.SSL_CONF.getSwitch())) {
       option.setSslConfigurationFile(command.
           getOptionValue(DistCpOptionSwitch.SSL_CONF.getSwitch()));

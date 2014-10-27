@@ -58,11 +58,9 @@ public class CopyMapper extends Mapper<Text, FileStatus, Text, Text> {
     BYTES_EXPECTED,// Number of bytes expected to be copied.
     BYTES_FAILED,  // Number of bytes that failed to be copied.
     BYTES_SKIPPED, // Number of bytes that were skipped from copy.
-    SLEEP_TIME_MS, // Time map slept while trying to honor bandwidth cap.
-    BANDWIDTH_KB,  // Effective transfer rate in KB/s.
   }
 
-  private static final Log LOG = LogFactory.getLog(CopyMapper.class);
+  private static Log LOG = LogFactory.getLog(CopyMapper.class);
 
   private Configuration conf;
 
@@ -73,9 +71,7 @@ public class CopyMapper extends Mapper<Text, FileStatus, Text, Text> {
   private EnumSet<FileAttribute> preserve = EnumSet.noneOf(FileAttribute.class);
 
   private FileSystem targetFS = null;
-  private Path targetWorkPath = null;
-  private long startEpoch;
-  private long totalBytesCopied = 0;
+  private Path    targetWorkPath = null;
 
   @Override
   public void setup(Context context) throws IOException, InterruptedException {
@@ -100,7 +96,6 @@ public class CopyMapper extends Mapper<Text, FileStatus, Text, Text> {
     if (conf.get(DistCpConstants.CONF_LABEL_SSL_CONF) != null) {
       initializeSSLConf();
     }
-    startEpoch = System.currentTimeMillis();
   }
 
   /**
@@ -260,7 +255,6 @@ public class CopyMapper extends Mapper<Text, FileStatus, Text, Text> {
     incrementCounter(context, Counter.BYTES_EXPECTED, sourceFileStatus.getLen());
     incrementCounter(context, Counter.BYTES_COPIED, bytesCopied);
     incrementCounter(context, Counter.PATHS_COPIED, 1);
-    totalBytesCopied += bytesCopied;
   }
 
   private void createTargetDirsWithRetry(String description,
@@ -322,14 +316,5 @@ public class CopyMapper extends Mapper<Text, FileStatus, Text, Text> {
                 || (source.getBlockSize() != targetFileStatus.getBlockSize() &&
                       preserve.contains(FileAttribute.BLOCKSIZE))
                );
-  }
-
-  @Override
-  protected void cleanup(Context context)
-      throws IOException, InterruptedException {
-    super.cleanup(context);
-    long secs = (System.currentTimeMillis() - startEpoch) / 1000;
-    incrementCounter(context, Counter.BANDWIDTH_KB,
-        totalBytesCopied / ((secs == 0 ? 1 : secs) * 1024));
   }
 }
