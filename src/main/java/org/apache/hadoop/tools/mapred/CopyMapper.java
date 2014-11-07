@@ -60,7 +60,7 @@ public class CopyMapper extends Mapper<Text, FileStatus, Text, Text> {
     BYTES_SKIPPED, // Number of bytes that were skipped from copy.
   }
 
-  private static Log LOG = LogFactory.getLog(CopyMapper.class);
+  private static final Log LOG = LogFactory.getLog(CopyMapper.class);
 
   private Configuration conf;
 

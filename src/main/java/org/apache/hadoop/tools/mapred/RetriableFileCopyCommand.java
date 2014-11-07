@@ -40,8 +40,8 @@ import java.util.EnumSet;
  */
 public class RetriableFileCopyCommand extends RetriableCommand {
 
-  private static Log LOG = LogFactory.getLog(RetriableFileCopyCommand.class);
-  private static int BUFFER_SIZE = 8 * 1024;
+  private static final Log LOG = LogFactory.getLog(RetriableFileCopyCommand.class);
+  private static final int BUFFER_SIZE = 8 * 1024;
 
   /**
    * Constructor, taking a description of the action.
@@ -220,7 +220,7 @@ public class RetriableFileCopyCommand extends RetriableCommand {
           throws IOException {
     try {
       FileSystem fs = path.getFileSystem(conf);
-      long bandwidthMB = conf.getInt(DistCpConstants.CONF_LABEL_BANDWIDTH_MB,
+      float bandwidthMB = conf.getFloat(DistCpConstants.CONF_LABEL_BANDWIDTH_MB,
               DistCpConstants.DEFAULT_BANDWIDTH_MB);
       return new ThrottledInputStream(new BufferedInputStream(fs.open(path)),
               bandwidthMB * 1024 * 1024);

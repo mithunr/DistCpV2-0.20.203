@@ -158,7 +158,7 @@ public class OptionsParser {
 
     if (command.hasOption(DistCpOptionSwitch.BANDWIDTH.getSwitch())) {
       try {
-        Integer mapBandwidth = Integer.parseInt(
+        Float mapBandwidth = Float.parseFloat(
             getVal(command, DistCpOptionSwitch.BANDWIDTH.getSwitch()).trim());
         option.setMapBandwidth(mapBandwidth);
       } catch (NumberFormatException e) {
