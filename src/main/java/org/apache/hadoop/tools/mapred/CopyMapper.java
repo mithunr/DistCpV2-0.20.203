@@ -58,6 +58,7 @@ public class CopyMapper extends Mapper<Text, FileStatus, Text, Text> {
     BYTES_EXPECTED,// Number of bytes expected to be copied.
     BYTES_FAILED,  // Number of bytes that failed to be copied.
     BYTES_SKIPPED, // Number of bytes that were skipped from copy.
+    SLEEP_TIME_MS, // Time map slept while trying to honor bandwidth cap.
   }
 
   private static final Log LOG = LogFactory.getLog(CopyMapper.class);
@@ -71,7 +72,7 @@ public class CopyMapper extends Mapper<Text, FileStatus, Text, Text> {
   private EnumSet<FileAttribute> preserve = EnumSet.noneOf(FileAttribute.class);
 
   private FileSystem targetFS = null;
-  private Path    targetWorkPath = null;
+  private Path targetWorkPath = null;
 
   @Override
   public void setup(Context context) throws IOException, InterruptedException {

@@ -174,8 +174,8 @@ public class RetriableFileCopyCommand extends RetriableCommand {
         updateContextStatus(totalBytesRead, context, sourceFileStatus);
         bytesRead = inStream.read(buf);
       }
-    /*  HadoopCompat.incrementCounter(HadoopCompat.getCounter(context,
-        CopyMapper.Counter.SLEEP_TIME_MS), inStream.getTotalSleepTime());*/
+      HadoopCompat.incrementCounter(HadoopCompat.getCounter(context,
+          CopyMapper.Counter.SLEEP_TIME_MS), inStream.getTotalSleepTime());
       LOG.info("STATS: " + inStream);
     } finally {
       if (mustCloseStream) {
@@ -220,14 +220,18 @@ public class RetriableFileCopyCommand extends RetriableCommand {
           throws IOException {
     try {
       FileSystem fs = path.getFileSystem(conf);
-      float bandwidthMB = conf.getFloat(DistCpConstants.CONF_LABEL_BANDWIDTH_MB,
-              DistCpConstants.DEFAULT_BANDWIDTH_MB);
+      float bandwidthMB = getAllowedBandwidth(conf);
       return new ThrottledInputStream(new BufferedInputStream(fs.open(path)),
               bandwidthMB * 1024 * 1024);
     }
     catch (IOException e) {
       throw new CopyReadException(e);
     }
+  }
+
+  private static float getAllowedBandwidth(Configuration conf) {
+    return conf.getFloat(DistCpConstants.CONF_LABEL_BANDWIDTH_MB,
+        DistCpConstants.DEFAULT_BANDWIDTH_MB);
   }
 
   private static short getReplicationFactor(
