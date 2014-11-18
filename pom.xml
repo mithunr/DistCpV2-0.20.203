@@ -268,7 +268,7 @@
             </property>
             <property>
               <name>org.apache.commons.logging.simplelog.defaultlog</name>
-              <value>info</value>
+              <value>debug</value>
             </property>
           </systemProperties>
         </configuration>
