@@ -18,6 +18,7 @@
 
 package org.apache.hadoop.tools.mapred;
 
+import org.apache.hadoop.tools.util.HadoopCompat;
 import org.apache.hadoop.tools.util.RetriableCommand;
 import org.apache.hadoop.tools.util.ThrottledInputStream;
 import org.apache.hadoop.tools.util.DistCpUtils;
@@ -39,8 +40,8 @@ import java.util.EnumSet;
  */
 public class RetriableFileCopyCommand extends RetriableCommand {
 
-  private static Log LOG = LogFactory.getLog(RetriableFileCopyCommand.class);
-  private static int BUFFER_SIZE = 8 * 1024;
+  private static final Log LOG = LogFactory.getLog(RetriableFileCopyCommand.class);
+  private static final int BUFFER_SIZE = 8 * 1024;
 
   /**
    * Constructor, taking a description of the action.
@@ -77,7 +78,7 @@ public class RetriableFileCopyCommand extends RetriableCommand {
           throws IOException {
 
     Path tmpTargetPath = getTmpFile(target, context);
-    final Configuration configuration = context.getConfiguration();
+    final Configuration configuration = HadoopCompat.getTaskConfiguration(context);
     FileSystem targetFS = target.getFileSystem(configuration);
 
     try {
@@ -91,7 +92,9 @@ public class RetriableFileCopyCommand extends RetriableCommand {
                                      context, fileAttributes);
 
       compareFileLengths(sourceFileStatus, tmpTargetPath, configuration, bytesRead);
-      compareCheckSums(sourceFS, sourceFileStatus.getPath(), targetFS, tmpTargetPath);
+      if (bytesRead > 0) {
+        compareCheckSums(sourceFS, sourceFileStatus.getPath(), targetFS, tmpTargetPath);
+      }
       promoteTmpToTarget(tmpTargetPath, target, targetFS);
       return bytesRead;
 
@@ -109,7 +112,7 @@ public class RetriableFileCopyCommand extends RetriableCommand {
             tmpTargetPath, true, BUFFER_SIZE,
             getReplicationFactor(fileAttributes, sourceFileStatus, targetFS),
             getBlockSize(fileAttributes, sourceFileStatus, targetFS), context));
-    return copyBytes(sourceFileStatus, outStream, BUFFER_SIZE, true, context);
+    return copyBytes(sourceFileStatus, outStream, BUFFER_SIZE, context);
   }
 
   private void compareFileLengths(FileStatus sourceFileStatus, Path target,
@@ -145,7 +148,7 @@ public class RetriableFileCopyCommand extends RetriableCommand {
   }
 
   private Path getTmpFile(Path target, Mapper.Context context) {
-    Path targetWorkPath = new Path(context.getConfiguration().
+    Path targetWorkPath = new Path(HadoopCompat.getTaskConfiguration(context).
         get(DistCpConstants.CONF_LABEL_TARGET_WORK_PATH));
 
     Path root = target.equals(targetWorkPath)? targetWorkPath.getParent() : targetWorkPath;
@@ -155,15 +158,14 @@ public class RetriableFileCopyCommand extends RetriableCommand {
   }
 
   private long copyBytes(FileStatus sourceFileStatus, OutputStream outStream,
-                         int bufferSize, boolean mustCloseStream,
-                         Mapper.Context context) throws IOException {
+                         int bufferSize, Mapper.Context context) throws IOException {
     Path source = sourceFileStatus.getPath();
     byte buf[] = new byte[bufferSize];
     ThrottledInputStream inStream = null;
     long totalBytesRead = 0;
 
     try {
-      inStream = getInputStream(source, context.getConfiguration());
+      inStream = getInputStream(source, HadoopCompat.getTaskConfiguration(context));
       int bytesRead = readBytes(inStream, buf);
       while (bytesRead >= 0) {
         totalBytesRead += bytesRead;
@@ -171,17 +173,16 @@ public class RetriableFileCopyCommand extends RetriableCommand {
         updateContextStatus(totalBytesRead, context, sourceFileStatus);
         bytesRead = inStream.read(buf);
       }
+      HadoopCompat.incrementCounter(HadoopCompat.getCounter(context,
+          CopyMapper.Counter.SLEEP_TIME_MS), inStream.getTotalSleepTime());
       LOG.info("STATS: " + inStream);
     } finally {
-      if (mustCloseStream) {
-        IOUtils.cleanup(LOG, inStream);
-        try {
-          outStream.close();
-        }
-        catch(IOException exception) {
-          LOG.error("Could not close output-stream. ", exception);
-          throw exception;
-        }
+      IOUtils.cleanup(LOG, inStream);
+      try {
+        outStream.close();
+      } catch(IOException exception) {
+        LOG.error("Could not close output-stream. ", exception);
+        throw exception;
       }
     }
 
@@ -198,7 +199,7 @@ public class RetriableFileCopyCommand extends RetriableCommand {
             .append('/')
         .append(DistCpUtils.getStringDescriptionFor(sourceFileStatus.getLen()))
             .append(']');
-    context.setStatus(message.toString());
+    HadoopCompat.setStatus(context, message.toString());
   }
 
   private static int readBytes(InputStream inStream, byte buf[])
@@ -215,14 +216,18 @@ public class RetriableFileCopyCommand extends RetriableCommand {
           throws IOException {
     try {
       FileSystem fs = path.getFileSystem(conf);
-      long bandwidthMB = conf.getInt(DistCpConstants.CONF_LABEL_BANDWIDTH_MB,
-              DistCpConstants.DEFAULT_BANDWIDTH_MB);
+      float bandwidthMB = getAllowedBandwidth(conf);
       return new ThrottledInputStream(new BufferedInputStream(fs.open(path)),
               bandwidthMB * 1024 * 1024);
     }
     catch (IOException e) {
       throw new CopyReadException(e);
     }
+  }
+
+  private static float getAllowedBandwidth(Configuration conf) {
+    return conf.getFloat(DistCpConstants.CONF_LABEL_BANDWIDTH_MB,
+        DistCpConstants.DEFAULT_BANDWIDTH_MB);
   }
 
   private static short getReplicationFactor(

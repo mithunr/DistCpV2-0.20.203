@@ -21,8 +21,6 @@ package org.apache.hadoop.tools.util;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.io.retry.RetryPolicy;
-import org.apache.hadoop.io.retry.RetryPolicies;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -33,7 +31,7 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class RetriableCommand {
 
-  private static Log LOG = LogFactory.getLog(RetriableCommand.class);
+  private static final Log LOG = LogFactory.getLog(RetriableCommand.class);
 
   private static final long DELAY_MILLISECONDS = 500;
   private static final int  MAX_RETRIES        = 3;

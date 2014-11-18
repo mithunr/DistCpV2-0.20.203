@@ -18,22 +18,23 @@
 
 package org.apache.hadoop.tools;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.Stack;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.SequenceFile;
-import org.apache.hadoop.io.IOUtils;
-import org.apache.hadoop.io.Text;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DataInputBuffer;
-import org.apache.hadoop.tools.util.DistCpUtils;
+import org.apache.hadoop.io.SequenceFile;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.security.TokenCache;
 import org.apache.hadoop.security.Credentials;
-
-import java.io.*;
-import java.util.Stack;
+import org.apache.hadoop.tools.util.DistCpUtils;
 
 public class SimpleCopyListing extends CopyListing {
   private static final Log LOG = LogFactory.getLog(SimpleCopyListing.class);
@@ -55,6 +56,11 @@ public class SimpleCopyListing extends CopyListing {
   @Override
   protected void validatePaths(DistCpOptions options)
       throws IOException, InvalidInputException {
+
+    if (options.isSkipPathValidation()) {
+      LOG.debug("Skipping Path Validation in disctp");
+      return;
+    }
 
     Path targetPath = options.getTargetPath();
     FileSystem targetFS = targetPath.getFileSystem(getConf());
@@ -116,17 +122,18 @@ public class SimpleCopyListing extends CopyListing {
             if (LOG.isDebugEnabled()) {
               LOG.debug("Recording source-path: " + sourceStatus.getPath() + " for copy.");
             }
-            writeToFileListing(fileListWriter, sourceStatus, sourcePathRoot, localFile);
+            writeToFileListing(fileListWriter, sourceStatus, sourcePathRoot, localFile, options);
 
             if (isDirectoryAndNotEmpty(sourceFS, sourceStatus)) {
               if (LOG.isDebugEnabled()) {
                 LOG.debug("Traversing non-empty source dir: " + sourceStatus.getPath());
               }
-              traverseNonEmptyDirectory(fileListWriter, sourceStatus, sourcePathRoot, localFile);
+              traverseNonEmptyDirectory(fileListWriter, sourceStatus,
+                  sourcePathRoot, localFile, options);
             }
           }
         } else {
-          writeToFileListing(fileListWriter, rootStatus, sourcePathRoot, localFile);
+          writeToFileListing(fileListWriter, rootStatus, sourcePathRoot, localFile, options);
         }
       }
     } finally {
@@ -175,30 +182,35 @@ public class SimpleCopyListing extends CopyListing {
     return totalPaths;
   }
 
+  protected boolean shouldCopy(Path path, DistCpOptions options) {
+    return true;
+  }
+
   private Path makeQualified(Path path) throws IOException {
     return path.makeQualified(path.getFileSystem(getConf()));
   }
 
   private SequenceFile.Writer getWriter(Path pathToListFile) throws IOException {
     return SequenceFile.createWriter(pathToListFile.getFileSystem(getConf()),
-            getConf(), pathToListFile,
-            Text.class, FileStatus.class, SequenceFile.CompressionType.NONE);
+        getConf(), pathToListFile,
+        Text.class, FileStatus.class, SequenceFile.CompressionType.NONE);
   }
 
   private static boolean isDirectoryAndNotEmpty(FileSystem fileSystem,
-                                    FileStatus fileStatus) throws IOException {
+                                                FileStatus fileStatus) throws IOException {
     return fileStatus.isDir() && getChildren(fileSystem, fileStatus).length > 0;
   }
 
   private static FileStatus[] getChildren(FileSystem fileSystem,
-                                         FileStatus parent) throws IOException {
+                                          FileStatus parent) throws IOException {
     return fileSystem.listStatus(parent.getPath());
   }
 
   private void traverseNonEmptyDirectory(SequenceFile.Writer fileListWriter,
                                          FileStatus sourceStatus,
-                                         Path sourcePathRoot, boolean localFile)
-                                         throws IOException {
+                                         Path sourcePathRoot, boolean localFile,
+                                         DistCpOptions options)
+      throws IOException {
     FileSystem sourceFS = sourcePathRoot.getFileSystem(getConf());
     Stack<FileStatus> pathStack = new Stack<FileStatus>();
     pathStack.push(sourceStatus);
@@ -207,12 +219,13 @@ public class SimpleCopyListing extends CopyListing {
       for (FileStatus child: getChildren(sourceFS, pathStack.pop())) {
         if (LOG.isDebugEnabled())
           LOG.debug("Recording source-path: "
-                    + sourceStatus.getPath() + " for copy.");
-        writeToFileListing(fileListWriter, child, sourcePathRoot, localFile);
+              + sourceStatus.getPath() + " for copy.");
+        writeToFileListing(fileListWriter, child, sourcePathRoot, localFile,
+            options);
         if (isDirectoryAndNotEmpty(sourceFS, child)) {
           if (LOG.isDebugEnabled())
             LOG.debug("Traversing non-empty source dir: "
-                       + sourceStatus.getPath());
+                + sourceStatus.getPath());
           pathStack.push(child);
         }
       }
@@ -221,13 +234,14 @@ public class SimpleCopyListing extends CopyListing {
 
   private void writeToFileListing(SequenceFile.Writer fileListWriter,
                                   FileStatus fileStatus, Path sourcePathRoot,
-                                  boolean localFile) throws IOException {
+                                  boolean localFile, DistCpOptions options)
+      throws IOException {
     if (fileStatus.getPath().equals(sourcePathRoot) && fileStatus.isDir())
       return; // Skip the root-paths.
 
     if (LOG.isDebugEnabled()) {
       LOG.debug("REL PATH: " + DistCpUtils.getRelativePath(sourcePathRoot,
-        fileStatus.getPath()) + ", FULL PATH: " + fileStatus.getPath());
+          fileStatus.getPath()) + ", FULL PATH: " + fileStatus.getPath());
     }
 
     FileStatus status = fileStatus;
@@ -235,8 +249,14 @@ public class SimpleCopyListing extends CopyListing {
       status = getFileStatus(fileStatus);
     }
 
-    fileListWriter.append(new Text(DistCpUtils.getRelativePath(sourcePathRoot,
-        fileStatus.getPath())), status);
+    if (!shouldCopy(fileStatus.getPath(), options)) return;
+    if (options.shouldPreserveSrcPath()) {
+      fileListWriter.append(new Text(fileStatus.getPath().toUri().getPath()), status);
+    } else {
+      fileListWriter.append(new Text(DistCpUtils.getRelativePath(sourcePathRoot,
+          fileStatus.getPath())), status);
+    }
+
     fileListWriter.sync();
 
     if (!fileStatus.isDir()) {

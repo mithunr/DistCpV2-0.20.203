@@ -20,14 +20,14 @@ package org.apache.hadoop.tools;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.IOUtils;
-import org.apache.hadoop.tools.util.DistCpUtils;
 import org.apache.hadoop.security.Credentials;
+import org.apache.hadoop.tools.util.DistCpUtils;
 
 import java.io.IOException;
 
@@ -68,7 +68,7 @@ public abstract class CopyListing extends Configured {
    *
    * TARGET DOES NOT EXIST: Key-"", Value-FileStatus(/tmp/file1)
    * TARGET IS FILE       : Key-"", Value-FileStatus(/tmp/file1)
-   * TARGET IS DIR        : Key-"/file1", Value-FileStatus(/tmp/file1)  
+   * TARGET IS DIR        : Key-"/file1", Value-FileStatus(/tmp/file1)
    *
    * @param pathToListFile - Output file where the listing would be stored
    * @param options - Input options to distcp
@@ -92,7 +92,7 @@ public abstract class CopyListing extends Configured {
    *
    * @param options - Input options
    * @throws InvalidInputException: If inputs are invalid
-   * @throws IOException: any Exception with FS 
+   * @throws IOException: any Exception with FS
    */
   protected abstract void validatePaths(DistCpOptions options)
       throws IOException, InvalidInputException;
@@ -129,7 +129,7 @@ public abstract class CopyListing extends Configured {
    * @throws IOException - Any issues while checking for duplicates and throws
    * @throws DuplicateFileException - if there are duplicates
    */
-  private void checkForDuplicates(Path pathToListFile)
+  protected void checkForDuplicates(Path pathToListFile)
       throws DuplicateFileException, IOException {
 
     Configuration config = getConf();
@@ -196,11 +196,14 @@ public abstract class CopyListing extends Configured {
   public static CopyListing getCopyListing(Configuration configuration,
                                            Credentials credentials,
                                            DistCpOptions options) {
-    if (options.getSourceFileListing() == null) {
+    if (options.isUseSimpleFileListing()) {
+      return new SimpleFileBasedCopyListing(configuration, credentials);
+    } else if (options.getSourceFileListing() == null) {
       return new GlobbedCopyListing(configuration, credentials);
     } else {
       return new FileBasedCopyListing(configuration, credentials);
     }
+
   }
 
   static class DuplicateFileException extends RuntimeException {

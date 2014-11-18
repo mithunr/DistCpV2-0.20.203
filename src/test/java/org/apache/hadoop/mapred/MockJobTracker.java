@@ -42,181 +42,20 @@ import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Collections;
 
-public class MockJobTracker implements JobSubmissionProtocol {
+public class MockJobTracker {
 
-  private RPC.Server server;
-  public static final int PORT = 39737;
-  private LocalFileSystem localFileSystem;
 
-  public MockJobTracker(Configuration conf) throws IOException {
-    localFileSystem = FileSystem.getLocal(new Configuration());
-    InetSocketAddress addr = new InetSocketAddress("localhost", PORT);
-    server = RPC.getServer(this, addr.getHostName(), addr.getPort(), 1,
-          false, conf, null);
-    server.start();
+  public MockJobTracker() {
   }
 
-  public void shutdown() {
-    server.stop();
-  }
 
   public static Job getJobForClient() throws IOException {
     Job job = new Job(new Configuration());
-    job.getConfiguration().set("mapred.job.tracker", "localhost:" + PORT);
+    job.getConfiguration().set("mapred.job.tracker", "local"); //+ PORT);
     job.setInputFormatClass(NullInputFormat.class);
     job.setOutputFormatClass(NullOutputFormat.class);
     job.setNumReduceTasks(0);
     return job;
-  }
-
-  public long getProtocolVersion(String protocol, long clientVersion) {
-    return JobSubmissionProtocol.versionID;
-  }
-
-  @Override
-  public JobID getNewJobId() throws IOException {
-    return new JobID("1234", 1);
-  }
-
-  @Override
-  public JobStatus submitJob(JobID jobName,
-                             String jobSubmitDir, 
-                             Credentials ts) throws IOException {
-    return null;
-  }
-
-  @Override
-  public ClusterStatus getClusterStatus(boolean detailed) throws IOException {
-    return null;
-  }
-
-  @Override
-  public AccessControlList getQueueAdmins(String queueName) throws IOException {
-    return null;
-  }
-
-  @Override
-  public void killJob(JobID jobid) throws IOException {
-  }
-
-  @Override
-  public void setJobPriority(JobID jobid, String priority) throws IOException {
-  }
-
-  @Override
-  public boolean killTask(TaskAttemptID taskId, boolean shouldFail) throws IOException {
-    return false;
-  }
-
-  @Override
-  public JobProfile getJobProfile(JobID jobid) throws IOException {
-    return new JobProfile("usr", new JobID("!243", 1), "/tmp/file", "http://hurlurl/", "job");
-  }
-
-  @Override
-  public JobStatus getJobStatus(JobID jobid) throws IOException {
-    return new JobStatus(jobid, 1, 1, 1, JobStatus.SUCCEEDED);
-  }
-
-  @Override
-  public org.apache.hadoop.mapred.Counters getJobCounters(JobID jobid) throws IOException {
-    return null;
-  }
-
-  @Override
-  public TaskReport[] getMapTaskReports(JobID jobid) throws IOException {
-    return new TaskReport[0];
-  }
-
-  @Override
-  public TaskReport[] getReduceTaskReports(JobID jobid) throws IOException {
-    return new TaskReport[0];
-  }
-
-  @Override
-  public TaskReport[] getCleanupTaskReports(JobID jobid) throws IOException {
-    return new TaskReport[0];
-  }
-
-  @Override
-  public TaskReport[] getSetupTaskReports(JobID jobid) throws IOException {
-    return new TaskReport[0];
-  }
-
-  @Override
-  public String getFilesystemName() throws IOException {
-    return null;
-  }
-
-  @Override
-  public JobStatus[] jobsToComplete() throws IOException {
-    return new JobStatus[0];
-  }
-
-  @Override
-  public JobStatus[] getAllJobs() throws IOException {
-    return new JobStatus[0];
-  }
-
-  @Override
-  public TaskCompletionEvent[] getTaskCompletionEvents(JobID jobid,
-                                                       int fromEventId,
-                                                       int maxEvents) throws IOException {
-    return new TaskCompletionEvent[0];
-  }
-
-  @Override
-  public String[] getTaskDiagnostics(TaskAttemptID taskId) throws IOException {
-    return new String[0];
-  }
-
-  @Override
-  public String getSystemDir() {
-    return new Path("target/system").makeQualified(localFileSystem).toString();
-  }
-
-  @Override
-  public String getStagingAreaDir() throws IOException {
-    localFileSystem.mkdirs(new Path("target/staging"),
-        new FsPermission((short) 0700));    
-    return "target/staging";
-  }
-
-  @Override
-  public JobQueueInfo[] getQueues() throws IOException {
-    return new JobQueueInfo[0];
-  }
-
-  @Override
-  public JobQueueInfo getQueueInfo(String queue) throws IOException {
-    return null;
-  }
-
-  @Override
-  public JobStatus[] getJobsFromQueue(String queue) throws IOException {
-    return new JobStatus[0];
-  }
-
-  @Override
-  public QueueAclsInfo[] getQueueAclsForCurrentUser() throws IOException {
-    return new QueueAclsInfo[0];
-  }
-
-  @Override
-  public Token<DelegationTokenIdentifier> getDelegationToken(Text renewer)
-      throws IOException, InterruptedException {
-    return null;
-  }
-
-  @Override
-  public void cancelDelegationToken(Token<DelegationTokenIdentifier> token)
-      throws IOException, InterruptedException {
-  }
-
-  @Override
-  public long renewDelegationToken(Token<DelegationTokenIdentifier> token)
-      throws IOException, InterruptedException {
-    return 0;
   }
 
   private static class NullInputFormat extends InputFormat {

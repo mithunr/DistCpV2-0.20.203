@@ -43,7 +43,7 @@ public class TestThrottledInputStream {
       tmpFile.deleteOnExit();
       outFile.deleteOnExit();
 
-      long maxBandwidth = copyAndAssert(tmpFile, outFile, 0, 1, -1, CB.BUFFER);
+      float maxBandwidth = copyAndAssert(tmpFile, outFile, 0, 1, -1, CB.BUFFER);
 
       copyAndAssert(tmpFile, outFile, maxBandwidth, 20, 0, CB.BUFFER);
 /*
@@ -67,10 +67,10 @@ public class TestThrottledInputStream {
     }
   }
 
-  private long copyAndAssert(File tmpFile, File outFile,
-                             long maxBandwidth, float factor,
+  private float copyAndAssert(File tmpFile, File outFile,
+                             float maxBandwidth, float factor,
                              int sleepTime, CB flag) throws IOException {
-    long bandwidth;
+    float bandwidth;
     ThrottledInputStream in;
     long maxBPS = (long) (maxBandwidth / factor);
 

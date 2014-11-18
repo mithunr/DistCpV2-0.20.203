@@ -38,8 +38,7 @@ public class CounterProvider extends MockJobTracker {
 
   private Counters counters;
 
-  public CounterProvider(Configuration conf, Counters counters) throws IOException {
-    super(conf);
+  public CounterProvider(Counters counters) throws IOException {
     this.counters = counters;
   }
 
@@ -47,7 +46,6 @@ public class CounterProvider extends MockJobTracker {
     this.counters = counters;
   }
 
-  @Override
   public org.apache.hadoop.mapred.Counters getJobCounters(JobID ignore) throws IOException {
     org.apache.hadoop.mapred.Counters retCounter = new org.apache.hadoop.mapred.Counters();
     for (CounterGroup group : counters) {

@@ -27,7 +27,7 @@ public class DistCpConstants {
   public static final int DEFAULT_MAPS = 20;
 
   /* Default bandwidth if none specified */
-  public static final int DEFAULT_BANDWIDTH_MB = 100;
+  public static final float DEFAULT_BANDWIDTH_MB = 100;
 
   /* Default strategy for copying. Implementation looked up
      from distcp-default.xml
@@ -41,6 +41,7 @@ public class DistCpConstants {
   public static final String CONF_LABEL_WORK_PATH = "distcp.work.path";
   public static final String CONF_LABEL_LOG_PATH = "distcp.log.path";
   public static final String CONF_LABEL_IGNORE_FAILURES = "distcp.ignore.failures";
+  public static final String CONF_LABEL_PRESERVE_SRC_PATH = "distcp.prserve.src.path";
   public static final String CONF_LABEL_PRESERVE_STATUS = "distcp.preserve.status";
   public static final String CONF_LABEL_SYNC_FOLDERS = "distcp.sync.folders";
   public static final String CONF_LABEL_DELETE_MISSING = "distcp.delete.missing.source";

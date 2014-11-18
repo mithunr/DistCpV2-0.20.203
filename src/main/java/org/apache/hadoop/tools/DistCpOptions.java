@@ -18,14 +18,14 @@
 
 package org.apache.hadoop.tools;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.tools.util.DistCpUtils;
-
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.tools.util.DistCpUtils;
 
 /**
  * The Options class encapsulates all DistCp options.
@@ -38,12 +38,23 @@ public class DistCpOptions {
   private boolean syncFolder = false;
   private boolean deleteMissing = false;
   private boolean ignoreFailures = false;
+  private boolean preserveSrcPath = false;
   private boolean overwrite = false;
   private boolean skipCRC = false;
   private boolean blocking = true;
+  private boolean skipPathValidation = false;
+  private boolean useSimpleFileListing = false;
+
+  public boolean isUseSimpleFileListing() {
+    return useSimpleFileListing;
+  }
+
+  public void setUseSimpleFileListing(boolean useSimpleFileListing) {
+    this.useSimpleFileListing = useSimpleFileListing;
+  }
 
   private int maxMaps = DistCpConstants.DEFAULT_MAPS;
-  private int mapBandwidth = DistCpConstants.DEFAULT_BANDWIDTH_MB;
+  private float mapBandwidth = DistCpConstants.DEFAULT_BANDWIDTH_MB;
 
   private String sslConfigurationFile;
 
@@ -86,6 +97,15 @@ public class DistCpOptions {
     this.sourcePaths = sourcePaths;
     this.targetPath = targetPath;
   }
+
+  public boolean isSkipPathValidation() {
+    return skipPathValidation;
+  }
+
+  public void setSkipPathValidation(boolean skipPathValidation) {
+    this.skipPathValidation = skipPathValidation;
+  }
+
 
   /**
    * Constructor, to initialize source/target paths.
@@ -155,6 +175,24 @@ public class DistCpOptions {
   public void setDeleteMissing(boolean deleteMissing) {
     validate(DistCpOptionSwitch.DELETE_MISSING, deleteMissing);
     this.deleteMissing = deleteMissing;
+  }
+
+  /**
+   * Should preserve src path
+   *
+   * @return true if path has to be preserved. false otherwise
+   */
+  public boolean shouldPreserveSrcPath() {
+    return preserveSrcPath;
+  }
+
+  /**
+   * Set if preserve src path
+   *
+   * @param preserveSrcPath - boolean switch
+   */
+  public void setPreserveSrcPath(boolean preserveSrcPath) {
+    this.preserveSrcPath = preserveSrcPath;
   }
 
   /**
@@ -255,7 +293,7 @@ public class DistCpOptions {
    *
    * @return Bandwidth in MB
    */
-  public int getMapBandwidth() {
+  public float getMapBandwidth() {
     return mapBandwidth;
   }
 
@@ -264,7 +302,7 @@ public class DistCpOptions {
    *
    * @param mapBandwidth - per map bandwidth
    */
-  public void setMapBandwidth(int mapBandwidth) {
+  public void setMapBandwidth(float mapBandwidth) {
     if (mapBandwidth <= 0) {
       throw new IllegalArgumentException("Bandwidth " +
           mapBandwidth + " is invalid (should be > 0)");
@@ -451,6 +489,8 @@ public class DistCpOptions {
         String.valueOf(atomicCommit));
     DistCpOptionSwitch.addToConf(conf, DistCpOptionSwitch.IGNORE_FAILURES,
         String.valueOf(ignoreFailures));
+    DistCpOptionSwitch.addToConf(conf, DistCpOptionSwitch.PRESERVE_SRC_PATH,
+        String.valueOf(preserveSrcPath));
     DistCpOptionSwitch.addToConf(conf, DistCpOptionSwitch.SYNC_FOLDERS,
         String.valueOf(syncFolder));
     DistCpOptionSwitch.addToConf(conf, DistCpOptionSwitch.DELETE_MISSING,
@@ -477,6 +517,7 @@ public class DistCpOptions {
         ", syncFolder=" + syncFolder +
         ", deleteMissing=" + deleteMissing +
         ", ignoreFailures=" + ignoreFailures +
+        ", preserveSrcPath=" + preserveSrcPath +
         ", maxMaps=" + maxMaps +
         ", sslConfigurationFile='" + sslConfigurationFile + '\'' +
         ", copyStrategy='" + copyStrategy + '\'' +

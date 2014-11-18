@@ -24,8 +24,10 @@ import java.io.InputStream;
 public class ThrottledInputStream extends InputStream {
 
   private final InputStream rawStream;
-  private final long maxBytesPerSec;
+  private final float maxBytesPerSec;
   private final long startTime = System.currentTimeMillis();
+  private static final long MILLISECONDS_IN_SEC = 1000;
+  private static final float FLOAT_CONSTANT = 1.0f;
 
   private long bytesRead = 0;
   private long totalSleepTime = 0;
@@ -36,7 +38,7 @@ public class ThrottledInputStream extends InputStream {
     this(rawStream, Long.MAX_VALUE);
   }
 
-  public ThrottledInputStream(InputStream rawStream, long maxBytesPerSec) {
+  public ThrottledInputStream(InputStream rawStream, float maxBytesPerSec) {
     assert maxBytesPerSec > 0 : "Bandwidth " + maxBytesPerSec + " is invalid"; 
     this.rawStream = rawStream;
     this.maxBytesPerSec = maxBytesPerSec;
@@ -87,17 +89,22 @@ public class ThrottledInputStream extends InputStream {
     return bytesRead;
   }
 
-  public long getBytesPerSec() {
-    long elapsed = (System.currentTimeMillis() - startTime) / 1000;
-    if (elapsed == 0) {
-      return bytesRead;
+  public float getBytesPerSec() {
+    long elapsedTimeInMilliSecs = System.currentTimeMillis() - startTime;
+    if (elapsedTimeInMilliSecs <= MILLISECONDS_IN_SEC) {
+      return (bytesRead * FLOAT_CONSTANT);
     } else {
-      return bytesRead / elapsed;
+      return (bytesRead * MILLISECONDS_IN_SEC * FLOAT_CONSTANT)/ elapsedTimeInMilliSecs;
     }
   }
 
   public long getTotalSleepTime() {
     return totalSleepTime;
+  }
+
+  @Override
+  public void close() throws IOException {
+    rawStream.close();
   }
 
   @Override
